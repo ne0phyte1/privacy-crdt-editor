@@ -62,7 +62,7 @@ export class MasterDoc {
         content: "这是项目的根节点",
         visibility: "public",
         ownerGroup: "all",
-        allowedRoles: ["admin", "member", "guest"],
+        allowedRoles: ["admin", "leader", "member", "guest"],
         deleted: false,
         createdBy: "system",
         updatedBy: "system",
@@ -71,43 +71,43 @@ export class MasterDoc {
       });
       this.children.set(rootId, []);
 
-      // 公开介绍
+      // 公开介绍 — public/all，所有角色可见
       const n1 = this._createNodeInternal(
         rootId,
         "公开介绍",
         "这是所有人都能看到的公开内容。",
         "public",
         "all",
-        ["admin", "member", "guest"],
+        ["admin", "leader", "member", "guest"],
         "system",
         now
       );
 
-      // A 组任务
+      // A 组任务 — group/groupA，admin/leader/member 可见
       const n2 = this._createNodeInternal(
         rootId,
         "A组任务",
         "只有 A 组角色可以查看和编辑",
         "group",
         "groupA",
-        ["admin", "member"],
+        ["admin", "leader", "member"],
         "system",
         now
       );
 
-      // B 组任务
+      // B 组任务 — group/groupB，admin/leader/member 可见
       const n3 = this._createNodeInternal(
         rootId,
         "B组任务",
         "只有 B 组角色可以查看和编辑",
         "group",
         "groupB",
-        ["admin", "member"],
+        ["admin", "leader", "member"],
         "system",
         now
       );
 
-      // 管理员备注
+      // 管理员备注 — private/admin，仅 admin 可见
       const n4 = this._createNodeInternal(
         rootId,
         "管理员备注",
