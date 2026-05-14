@@ -628,15 +628,15 @@ app.get("/api/view/:userId", (req, res) => {
 /**
  * POST /api/operation
  * 核心接口：用户提交视图操作，服务端执行逆向映射 + 权限校验
+ * 需要 JWT 认证，userId 从 token 中获取，防止身份伪造
  */
-app.post("/api/operation", (req, res) => {
+app.post("/api/operation", requireAuth, (req: any, res) => {
   try {
-    const { userId, operation } = req.body;
+    // 从 JWT 中获取当前用户信息（禁止从请求体取 userId，防止身份伪造）
+    const jwtUser = req.currentUser as JwtPayload;
+    const userId = jwtUser.userId;
 
-    if (!userId) {
-      res.status(400).json({ status: "error", message: "userId 是必填字段" });
-      return;
-    }
+    const { operation } = req.body;
 
     if (!operation) {
       res.status(400).json({ status: "error", message: "operation 是必填字段" });
@@ -723,7 +723,7 @@ app.post("/api/operation", (req, res) => {
       }
     }
 
-    console.log(`[ACCESS GRANTED] 用户 ${userId} 操作成功: ${opResult.message}`);
+    console.log(`[ACCESS GRANTED] 用户 ${userId} (${user.role}/${user.group}) 操作成功: ${opResult.message}`);
     res.json(opResult);
   } catch (error) {
     res.status(500).json({ status: "error", message: (error as Error).message });

@@ -38,6 +38,9 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 
+# SQLite database
+backend/data/
+
 # Temp files
 tmp/
 temp/
