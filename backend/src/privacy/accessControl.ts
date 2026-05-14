@@ -1,10 +1,10 @@
 import { TreeNode } from "../crdt/masterDoc.js";
-import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
+import { getAllRoleConfigs, getRoleConfig as getRoleConfigFromDb } from "../db/roleStore.js";
+import type { RoleConfig as RoleConfigFromDb } from "../db/roleStore.js";
+import { findUserByUserId, getAllUsers as getAllUsersFromDb } from "../db/userStore.js";
 
 // ============================================================
-// 用户与角色类型定义
+// 用户与角色类型定义（保持与现有代码兼容的接口）
 // ============================================================
 
 export interface UserInfo {
@@ -14,6 +14,9 @@ export interface UserInfo {
   group: string;
 }
 
+/**
+ * 角色配置接口
+ */
 export interface RoleConfig {
   priority: number;
   description: string;
@@ -24,85 +27,57 @@ export interface RoleConfig {
   canEditOwnGroup?: boolean;
 }
 
-export interface UsersConfig {
-  users: UserInfo[];
-}
-
-export interface RolesConfig {
-  roles: Record<string, RoleConfig>;
-}
-
 // ============================================================
-// 文件路径
+// 用户管理（从 SQLite 读取）
 // ============================================================
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const USERS_PATH = path.resolve(__dirname, "../../../configs/users.json");
-const ROLES_PATH = path.resolve(__dirname, "../../../configs/roles.json");
-
-// ============================================================
-// 用户配置加载
-// ============================================================
-
-let cachedUsers: UserInfo[] | null = null;
-let cachedRoles: Record<string, RoleConfig> | null = null;
 
 /**
- * 加载 users.json 配置
- */
-export function loadUsersConfig(): UsersConfig {
-  const raw = fs.readFileSync(USERS_PATH, "utf-8");
-  return JSON.parse(raw) as UsersConfig;
-}
-
-/**
- * 加载 roles.json 配置
- */
-export function loadRolesConfig(): RolesConfig {
-  const raw = fs.readFileSync(ROLES_PATH, "utf-8");
-  return JSON.parse(raw) as RolesConfig;
-}
-
-/**
- * 获取所有用户列表
+ * 获取所有用户列表（转换为 UserInfo 格式兼容旧接口）
  */
 export function getAllUsers(): UserInfo[] {
-  if (cachedUsers) return cachedUsers;
-  const config = loadUsersConfig();
-  cachedUsers = config.users;
-  return cachedUsers;
+  const users = getAllUsersFromDb();
+  return users.map((u) => ({
+    userId: u.userId,
+    name: u.name,
+    role: u.role as "admin" | "leader" | "member" | "guest",
+    group: u.group,
+  }));
 }
 
 /**
- * 获取所有角色配置
+ * 获取所有角色配置（从 SQLite 读取）
  */
 export function getAllRoles(): Record<string, RoleConfig> {
-  if (cachedRoles) return cachedRoles;
-  const config = loadRolesConfig();
-  cachedRoles = config.roles;
-  return cachedRoles;
+  return getAllRoleConfigs();
 }
 
 /**
  * 根据 userId 获取用户信息
  */
 export function getUserById(userId: string): UserInfo | undefined {
-  return getAllUsers().find((u) => u.userId === userId);
+  const user = findUserByUserId(userId);
+  if (!user) return undefined;
+  return {
+    userId: user.user_id,
+    name: user.name,
+    role: user.role as "admin" | "leader" | "member" | "guest",
+    group: user.group_name,
+  };
 }
 
 /**
- * 根据角色名获取角色配置
+ * 根据角色名获取角色配置（从 SQLite 读取）
  */
 export function getRoleConfig(role: string): RoleConfig | undefined {
-  return getAllRoles()[role];
+  return getRoleConfigFromDb(role);
 }
 
 /**
- * 刷新所有缓存
+ * 刷新缓存 — SQLite 不需要缓存，此 API 保留兼容性
  */
 export function refreshUserCache(): void {
-  cachedUsers = null;
-  cachedRoles = null;
+  // SQLite 直接读取数据库，不需要缓存
+  console.log("[AccessControl] 使用 SQLite 数据库，无需缓存刷新");
 }
 
 // ============================================================
@@ -186,7 +161,7 @@ export function canAccessNode(user: UserInfo, node: TreeNode): boolean {
 
 /**
  * 检查用户是否有权限修改节点
- * 基于 roles.json 中的角色配置进行判断
+ * 基于 roles 表中的角色配置进行判断
  */
 export function canEditNode(user: UserInfo, node: TreeNode): boolean {
   // root 节点只有 admin 可修改
