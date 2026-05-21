@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Master Y.Doc 测试面板</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      padding: 24px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    /* 头部 */
+    .header {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff;
+      padding: 20px 28px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .header h1 { font-size: 22px; margin-bottom: 6px; }
+    .header p { font-size: 13px; opacity: 0.75; }
+    .header .badge {
+      display: inline-block;
+      background: #0f3460;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    /* 布局 */
+    .layout { display: flex; gap: 20px; align-items: flex-start; }
+    .left-panel { flex: 1; min-width: 0; }
+    .right-panel { width: 360px; flex-shrink: 0; }
+
+    /* 卡片 */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 15px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h2 .count {
+      font-size: 12px;
+      background: #e8e8e8;
+      padding: 1px 8px;
+      border-radius: 10px;
+      color: #666;
+      font-weight: normal;
+    }
+
+    /* 状态条 */
+    .status-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.online { background: #52c41a; }
+    .status-dot.offline { background: #ff4d4f; }
+    .status-dot.loading { background: #faad14; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.4; } }
+
+    /* 树形展示 */
+    .tree-container {
+      font-size: 13px;
+      line-height: 1.8;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .tree-node {
+      padding: 6px 10px;
+      margin: 2px 0;
+      border-radius: 6px;
+      cursor: default;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 3px solid transparent;
+    }
+    .tree-node:hover { background: #f5f5f5; }
+    .tree-node.selected {
+      background: #e6f7ff;
+      border-left-color: #1890ff;
+    }
+    .tree-node .toggle {
+      cursor: pointer;
+      width: 18px; height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #999;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .tree-node .toggle:hover { color: #333; }
+    .tree-node .node-icon {
+      width: 22px; height: 22px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .node-icon.public { background: #52c41a; }
+    .node-icon.group { background: #1890ff; }
+    .node-icon.private { background: #ff4d4f; }
+    .node-icon.deleted { background: #999; }
+    .tree-node .node-title { flex: 1; }
+    .tree-node .node-title.deleted-text { text-decoration: line-through; color: #999; }
+    .tree-node .node-tag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #f0f0f0;
+      color: #888;
+    }
+    .tree-node .node-tag.danger { background: #fff1f0; color: #ff4d4f; }
+    .tree-node .node-actions {
+      display: none;
+      gap: 4px;
+    }
+    .tree-node:hover .node-actions { display: flex; }
+    .node-actions button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #666;
+    }
+    .node-actions button:hover { background: #e8e8e8; color: #333; }
+    .node-actions .del-btn:hover { background: #fff1f0; color: #ff4d4f; }
+
+    .children { padding-left: 24px; }
+
+    /* 表单 */
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 4px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: #1890ff;
+      box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 50px; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+
+    .btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #1890ff; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #40a9ff; }
+    .btn-danger { background: #ff4d4f; color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #ff7875; }
+    .btn-success { background: #52c41a; color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #73d13d; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #d9d9d9;
+      color: #555;
+    }
+    .btn-outline:hover:not(:disabled) { border-color: #1890ff; color: #1890ff; }
+    .btn-sm { padding: 4px 12px; font-size: 12px; }
+
+    .btn-group { display: flex; gap: 8px; margin-top: 14px; }
+
+    /* 日志 */
+    .log-container {
+      max-height: 280px;
+      overflow-y: auto;
+      font-size: 12px;
+      background: #1a1a2e;
+      color: #a8d8ea;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: "Fira Code", monospace;
+      line-height: 1.6;
+    }
+    .log-entry { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 4px 0; }
+    .log-entry:last-child { border-bottom: none; }
+    .log-time { color: #888; margin-right: 8px; }
+    .log-ok { color: #52c41a; }
+    .log-err { color: #ff4d4f; }
+    .log-info { color: #faad14; }
+
+    /* 节点详情 */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 4px 8px;
+      font-size: 12px;
+    }
+    .detail-grid .label { color: #888; }
+    .detail-grid .value {
+      color: #333;
+      word-break: break-all;
+    }
+    .detail-grid .value.json {
+      background: #f6f8fa;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+      white-space: pre-wrap;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    /* 响应式 */
+    @media (max-width: 800px) {
+      .layout { flex-direction: column; }
+      .right-panel { width: 100%; }
+    }
+
+    /* 滚动条美化 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #bbb; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- 头部 -->
+  <div class="header">
+    <h1>🛠️ Master Y.Doc 测试面板</h1>
+    <p>后端 Master Y.Doc CRDT 文档模型 — 第2步 · 增删改查调试工具</p>
+    <span class="badge">服务端完整文档 · 客户端不直接访问</span>
+  </div>
+
+  <div class="status-bar">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="statusText">检查后端连接...</span>
+    <span style="flex:1"></span>
+    <button class="btn btn-outline btn-sm" onclick="refreshTree()">🔄 刷新树</button>
+    <button class="btn btn-outline btn-sm" onclick="reInitData()">♻️ 重置示例数据</button>
+  </div>
+
+  <div class="layout">
+    <!-- 左：树形展示 -->
+    <div class="left-panel">
+      <div class="card">
+        <h2>📂 Master Y.Doc 完整树 <span class="count" id="nodeCount">0 节点</span></h2>
+        <div class="tree-container" id="treeContainer">
+          <div style="color:#999;text-align:center;padding:40px 0;">正在加载...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📋 操作日志</h2>
+        <div class="log-container" id="logContainer">
+          <div class="log-entry"><span class="log-time">[--:--:--]</span><span class="log-info">启动日志记录</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：操作面板 -->
+    <div class="right-panel">
+      <!-- 选中节点信息 -->
+      <div class="card" id="nodeDetailCard">
+        <h2>🔍 节点详情</h2>
+        <div id="nodeDetail">
+          <div style="color:#999;font-size:13px;text-align:center;padding:10px 0;">点击左侧节点查看详情</div>
+        </div>
+      </div>
+
+      <!-- 添加节点 -->
+      <div class="card">
+        <h2>➕ 添加子节点</h2>
+        <div>
+          <div class="form-group">
+            <label>父节点 ID</label>
+            <input type="text" id="addParentId" value="root" placeholder="如 root" />
+          </div>
+          <div class="form-group">
+            <label>标题 *</label>
+            <input type="text" id="addTitle" placeholder="节点标题" />
+          </div>
+          <div class="form-group">
+            <label>内容</label>
+            <textarea id="addContent" placeholder="节点内容"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>可见性</label>
+              <select id="addVisibility">
+                <option value="public">🟢 public</option>
+                <option value="group">🔵 group</option>
+                <option value="private">🔴 private</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>所属组</label>
+              <select id="addOwnerGroup">
+                <option value="all">all</option>
+                <option value="groupA">groupA</option>
+                <option value="groupB">groupB</option>
+                <option value="admin">admin</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>允许角色（逗号分隔）</label>
+            <input type="text" id="addAllowedRoles" value="admin,member,guest" placeholder="admin,member,guest" />
+          </div>
+          <div class="form-group">
+            <label>操作用户</label>
+            <input type="text" id="addUserId" value="test-user" placeholder="test-user" />
+          </div>
+          <button class="btn btn-primary" onclick="addNode()" style="width:100%;">添加节点</button>
+        </div>
+      </div>
+
+      <!-- 更新节点 -->
+      <div class="card">
+        <h2>✏️ 更新节点</h2>
+        <div>
+          <div class="form-group">
+            <label>节点 ID *</label>
+            <input type="text" id="updateNodeId" placeholder="点击左侧节点自动填充" />
+          </div>
+          <div class="form-group">
+            <label>新标题</label>
+            <input type="text" id="updateTitle" placeholder="留空则不修改" />
+          </div>
+          <div class="form-group">
+            <label>新内容</label>
+            <textarea id="updateContent" placeholder="留空则不修改"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>新可见性</label>
+              <select id="updateVisibility">
+                <option value="">(不修改)</option>
+                <option value="public">public</option>
+                <option value="group">group</option>
+                <option value="private">private</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>新所属组</label>
+              <select id="updateOwnerGroup">
+                <option value="">(不修改)</option>
+                <option value="all">all</option>
+                <option value="groupA">groupA</option>
+                <option value="groupB">groupB</option>
+                <option value="admin">admin</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-success" onclick="updateNode()" style="flex:1;">保存修改</button>
+            <button class="btn btn-danger" onclick="deleteNode()">🗑️ 删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 配置
+// ============================================================
+const API_BASE = "http://localhost:3001";
+
+// ============================================================
+// 状态
+// ============================================================
+let selectedNodeId = null;
+let treeData = null;
+
+// ============================================================
+// 日志
+// ============================================================
+function log(message, type = "info") {
+  const container = document.getElementById("logContainer");
+  const time = new Date().toLocaleTimeString();
+  const entry = document.createElement("div");
+  entry.className = "log-entry";
+  entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-${type}">${message}</span>`;
+  container.appendChild(entry);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ============================================================
+// API 调用
+// ============================================================
+async function apiGet(path) {
+  const res = await fetch(`${API_BASE}${path}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  return res.json();
+}
+
+async function apiPost(path, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  return res.json();
+}
+
+async function apiPut(path, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  return res.json();
+}
+
+async function apiDelete(path) {
+  const res = await fetch(`${API_BASE}${path}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  return res.json();
+}
+
+// ============================================================
+// 检查后端状态
+// ============================================================
+async function checkHealth() {
+  const dot = document.getElementById("statusDot");
+  const text = document.getElementById("statusText");
+  dot.className = "status-dot loading";
+  text.textContent = "正在连接后端...";
+
+  try {
+    const data = await apiGet("/api/health");
+    dot.className = "status-dot online";
+    text.textContent = `✅ 后端在线 — ${data.message}`;
+    log("后端连接成功", "ok");
+  } catch (e) {
+    dot.className = "status-dot offline";
+    text.textContent = `❌ 后端连接失败 — ${e.message}`;
+    log(`后端连接失败: ${e.message}`, "err");
+  }
+}
+
+// ============================================================
+// 获取并渲染树
+// ============================================================
+async function refreshTree() {
+  const container = document.getElementById("treeContainer");
+  container.innerHTML = '<div style="color:#999;text-align:center;padding:40px 0;">正在加载树...</div>';
+
+  try {
+    const data = await apiGet("/api/master-tree");
+    if (data.status !== "ok") throw new Error(data.message);
+    treeData = data.tree;
+    renderTree(treeData);
+    updateNodeCount(treeData);
+    log("完整树已加载", "ok");
+  } catch (e) {
+    container.innerHTML = `<div style="color:#ff4d4f;text-align:center;padding:40px 0;">❌ 加载失败: ${e.message}</div>`;
+    log(`加载完整树失败: ${e.message}`, "err");
+  }
+}
+
+function updateNodeCount(tree) {
+  let count = 0;
+  function countNodes(node) {
+    count++;
+    if (node.children) node.children.forEach(countNodes);
+  }
+  countNodes(tree);
+  document.getElementById("nodeCount").textContent = `${count} 节点`;
+}
+
+function renderTree(node, depth = 0) {
+  const container = document.getElementById("treeContainer");
+  container.innerHTML = "";
+  const rootEl = renderNode(node, depth);
+  container.appendChild(rootEl);
+}
+
+function renderNode(node, depth) {
+  const wrapper = document.createElement("div");
+
+  const line = document.createElement("div");
+  line.className = `tree-node ${selectedNodeId === node.id ? "selected" : ""}`;
+  line.dataset.nodeId = node.id;
+  line.onclick = (e) => {
+    e.stopPropagation();
+    selectNode(node.id);
+  };
+
+  // toggle (如果有子节点)
+  const toggle = document.createElement("span");
+  toggle.className = "toggle";
+  if (node.children && node.children.length > 0) {
+    toggle.textContent = "▼";
+    let expanded = true;
+    toggle.onclick = (e) => {
+      e.stopPropagation();
+      expanded = !expanded;
+      toggle.textContent = expanded ? "▼" : "▶";
+      const childrenEl = wrapper.querySelector(".children");
+      if (childrenEl) childrenEl.style.display = expanded ? "block" : "none";
+    };
+  } else {
+    toggle.textContent = "  ";
+  }
+  line.appendChild(toggle);
+
+  // icon
+  const icon = document.createElement("span");
+  icon.className = `node-icon ${node.deleted ? "deleted" : node.visibility}`;
+  if (node.deleted) {
+    icon.textContent = "✕";
+  } else if (node.visibility === "public") {
+    icon.textContent = "🌐";
+  } else if (node.visibility === "group") {
+    icon.textContent = "👥";
+  } else {
+    icon.textContent = "🔒";
+  }
+  line.appendChild(icon);
+
+  // title
+  const title = document.createElement("span");
+  title.className = `node-title ${node.deleted ? "deleted-text" : ""}`;
+  title.textContent = node.title || "(untitled)";
+  line.appendChild(title);
+
+  // tags
+  if (node.ownerGroup && node.ownerGroup !== "all") {
+    const tag = document.createElement("span");
+    tag.className = "node-tag";
+    tag.textContent = node.ownerGroup;
+    line.appendChild(tag);
+  }
+  if (node.deleted) {
+    const tag = document.createElement("span");
+    tag.className = "node-tag danger";
+    tag.textContent = "deleted";
+    line.appendChild(tag);
+  }
+
+  // inline actions
+  const actions = document.createElement("span");
+  actions.className = "node-actions";
+  const editBtn = document.createElement("button");
+  editBtn.textContent = "✏️";
+  editBtn.title = "编辑此节点";
+  editBtn.onclick = (e) => {
+    e.stopPropagation();
+    selectNode(node.id);
+    document.getElementById("updateNodeId").value = node.id;
+    document.getElementById("updateTitle").value = node.title;
+    document.getElementById("updateContent").value = node.content;
+    document.getElementById("updateVisibility").value = node.visibility || "";
+    document.getElementById("updateOwnerGroup").value = node.ownerGroup || "";
+    document.getElementById("updateNodeId").scrollIntoView({ behavior: "smooth" });
+  };
+  actions.appendChild(editBtn);
+
+  if (!node.deleted && node.id !== "root") {
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "🗑️";
+    delBtn.className = "del-btn";
+    delBtn.title = "删除此节点";
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      document.getElementById("updateNodeId").value = node.id;
+      deleteNode();
+    };
+    actions.appendChild(delBtn);
+  }
+
+  const addChildBtn = document.createElement("button");
+  addChildBtn.textContent = "➕";
+  addChildBtn.title = "在此节点下添加子节点";
+  addChildBtn.onclick = (e) => {
+    e.stopPropagation();
+    document.getElementById("addParentId").value = node.id;
+    document.getElementById("addTitle").value = "";
+    document.getElementById("addContent").value = "";
+    document.getElementById("addTitle").focus();
+  };
+  actions.appendChild(addChildBtn);
+
+  line.appendChild(actions);
+
+  wrapper.appendChild(line);
+
+  // children
+  if (node.children && node.children.length > 0) {
+    const childrenContainer = document.createElement("div");
+    childrenContainer.className = "children";
+    node.children.forEach((child) => {
+      childrenContainer.appendChild(renderNode(child, depth + 1));
+    });
+    wrapper.appendChild(childrenContainer);
+  }
+
+  return wrapper;
+}
+
+// ============================================================
+// 选择节点
+// ============================================================
+function selectNode(nodeId) {
+  selectedNodeId = nodeId;
+
+  // 高亮更新
+  document.querySelectorAll(".tree-node").forEach((el) => {
+    el.classList.toggle("selected", el.dataset.nodeId === nodeId);
+  });
+
+  // 显示详情
+  const detail = document.getElementById("nodeDetail");
+  if (!treeData) return;
+
+  function findNode(tree, id) {
+    if (tree.id === id) return tree;
+    if (tree.children) {
+      for (const child of tree.children) {
+        const found = findNode(child, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  const node = findNode(treeData, nodeId);
+  if (!node) {
+    detail.innerHTML = '<div style="color:#999;font-size:13px;">节点未找到</div>';
+    return;
+  }
+
+  detail.innerHTML = `
+    <div class="detail-grid">
+      <span class="label">ID</span>
+      <span class="value" style="font-family:monospace;font-size:11px;">${node.id}</span>
+
+      <span class="label">标题</span>
+      <span class="value">${node.title}</span>
+
+      <span class="label">内容</span>
+      <span class="value">${node.content || "(空)"}</span>
+
+      <span class="label">可见性</span>
+      <span class="value">${node.visibility}</span>
+
+      <span class="label">所属组</span>
+      <span class="value">${node.ownerGroup}</span>
+
+      <span class="label">允许角色</span>
+      <span class="value">[${(node.allowedRoles || []).join(", ")}]</span>
+
+      <span class="label">已删除</span>
+      <span class="value">${node.deleted ? "✅ 是" : "❌ 否"}</span>
+
+      <span class="label">创建者</span>
+      <span class="value">${node.createdBy}</span>
+
+      <span class="label">更新者</span>
+      <span class="value">${node.updatedBy}</span>
+
+      <span class="label">创建时间</span>
+      <span class="value" style="font-size:11px;">${node.createdAt}</span>
+
+      <span class="label">更新时间</span>
+      <span class="value" style="font-size:11px;">${node.updatedAt}</span>
+
+      <span class="label">子节点</span>
+      <span class="value">${(node.children || []).length} 个</span>
+
+      <span class="label">完整 JSON</span>
+      <span class="value json">${JSON.stringify(node, null, 2)}</span>
+    </div>
+  `;
+
+  // 填充更新表单
+  document.getElementById("updateNodeId").value = node.id;
+}
+
+// ============================================================
+// 增删改操作
+// ============================================================
+
+async function addNode() {
+  const parentId = document.getElementById("addParentId").value.trim();
+  const title = document.getElementById("addTitle").value.trim();
+  const content = document.getElementById("addContent").value.trim();
+  const visibility = document.getElementById("addVisibility").value;
+  const ownerGroup = document.getElementById("addOwnerGroup").value;
+  const rolesStr = document.getElementById("addAllowedRoles").value.trim();
+  const userId = document.getElementById("addUserId").value.trim() || "test-user";
+
+  if (!parentId) { log("父节点 ID 不能为空", "err"); return; }
+  if (!title) { log("标题不能为空", "err"); return; }
+
+  const allowedRoles = rolesStr.split(",").map(s => s.trim()).filter(Boolean);
+
+  try {
+    const result = await apiPost("/api/master/nodes", {
+      parentId,
+      title,
+      content,
+      visibility,
+      ownerGroup,
+      allowedRoles,
+      userId,
+    });
+    log(`✅ 节点已添加: "${title}" (${result.nodeId})`, "ok");
+    await refreshTree();
+    // 选中新节点
+    if (result.nodeId) setTimeout(() => selectNode(result.nodeId), 100);
+  } catch (e) {
+    log(`❌ 添加节点失败: ${e.message}`, "err");
+  }
+}
+
+async function updateNode() {
+  const nodeId = document.getElementById("updateNodeId").value.trim();
+  if (!nodeId) { log("请先点击左侧选择一个节点", "err"); return; }
+
+  const fields = {};
+  const title = document.getElementById("updateTitle").value.trim();
+  const content = document.getElementById("updateContent").value.trim();
+  const visibility = document.getElementById("updateVisibility").value;
+  const ownerGroup = document.getElementById("updateOwnerGroup").value;
+
+  if (title) fields.title = title;
+  if (content) fields.content = content;
+  if (visibility) fields.visibility = visibility;
+  if (ownerGroup) fields.ownerGroup = ownerGroup;
+
+  if (Object.keys(fields).length === 0) {
+    log("请至少填写一个要修改的字段", "err");
+    return;
+  }
+
+  try {
+    const result = await apiPut(`/api/master/nodes/${nodeId}`, {
+      fields,
+      userId: document.getElementById("addUserId").value.trim() || "test-user",
+    });
+    log(`✅ 节点已更新: ${nodeId} — ${Object.keys(fields).join(", ")}`, "ok");
+    await refreshTree();
+    selectNode(nodeId);
+  } catch (e) {
+    log(`❌ 更新节点失败: ${e.message}`, "err");
+  }
+}
+
+async function deleteNode() {
+  const nodeId = document.getElementById("updateNodeId").value.trim();
+  if (!nodeId) { log("请先点击左侧选择一个节点", "err"); return; }
+  if (nodeId === "root") { log("不能删除根节点", "err"); return; }
+
+  if (!confirm(`确定要逻辑删除节点 "${nodeId}" 吗？`)) return;
+
+  try {
+    const result = await apiDelete(`/api/master/nodes/${nodeId}?userId=${encodeURIComponent(document.getElementById("addUserId").value.trim() || "test-user")}`);
+    log(`✅ 节点已删除: ${nodeId}`, "ok");
+    document.getElementById("updateNodeId").value = "";
+    await refreshTree();
+  } catch (e) {
+    log(`❌ 删除节点失败: ${e.message}`, "err");
+  }
+}
+
+async function reInitData() {
+  if (!confirm("确定要重置所有示例数据吗？当前数据将丢失。")) return;
+
+  // 直接刷新树，masterDoc 后端目前保持单例（重启重置）
+  // 这里我们只是重新获取当前数据
+  log("🔄 重置示例数据需要重启后端", "info");
+  log("请在终端停止后端 (Ctrl+C) 并重新启动: npm run dev", "info");
+  await refreshTree();
+}
+
+// ============================================================
+// 初始化
+// ============================================================
+async function init() {
+  await checkHealth();
+  if (document.querySelector(".status-dot.online")) {
+    await refreshTree();
+  }
+}
+
+init();
+</script>
+</body>
+</html>

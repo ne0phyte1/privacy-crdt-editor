@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>隐私视图测试面板 — RBAC + ABAC</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      padding: 24px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+
+    /* 头部 */
+    .header {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff;
+      padding: 20px 28px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .header h1 { font-size: 22px; margin-bottom: 6px; }
+    .header h1 span { color: #52c41a; }
+    .header p { font-size: 13px; opacity: 0.75; }
+    .header .badge {
+      display: inline-block;
+      background: #0f3460;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-top: 8px;
+      margin-right: 6px;
+    }
+    .badge.rbac { background: #722ed1; }
+    .badge.abac { background: #13c2c2; }
+
+    /* 布局 */
+    .layout { display: flex; gap: 20px; align-items: flex-start; }
+    .left-panel { flex: 1; min-width: 0; }
+    .right-panel { width: 420px; flex-shrink: 0; }
+
+    /* 卡片 */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 15px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h2 .count {
+      font-size: 12px;
+      background: #e8e8e8;
+      padding: 1px 8px;
+      border-radius: 10px;
+      color: #666;
+      font-weight: normal;
+    }
+
+    /* 状态条 */
+    .status-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.online { background: #52c41a; }
+    .status-dot.offline { background: #ff4d4f; }
+    .status-dot.loading { background: #faad14; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.4; } }
+
+    /* 用户切换 */
+    .user-switcher {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .user-btn {
+      padding: 8px 16px;
+      border: 2px solid #d9d9d9;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      text-align: left;
+      min-width: 130px;
+    }
+    .user-btn:hover { border-color: #1890ff; background: #e6f7ff; }
+    .user-btn.active {
+      border-color: #1890ff;
+      background: #e6f7ff;
+      box-shadow: 0 0 0 2px rgba(24,144,255,0.2);
+    }
+    .user-btn .user-role {
+      font-size: 11px;
+      color: #888;
+      display: block;
+    }
+    .user-btn .user-role.admin { color: #ff4d4f; }
+    .user-btn .user-role.leader { color: #722ed1; }
+    .user-btn .user-role.member { color: #1890ff; }
+    .user-btn .user-role.guest { color: #52c41a; }
+
+    /* 当前用户信息 */
+    .current-user {
+      background: #f6f8fa;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .current-user .label { color: #888; font-size: 12px; }
+    .current-user .value { font-weight: 600; font-size: 14px; }
+    .current-user .tag {
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .tag.admin { background: #ff4d4f; }
+    .tag.leader { background: #722ed1; }
+    .tag.member { background: #1890ff; }
+    .tag.guest { background: #52c41a; }
+
+    /* 树形展示 */
+    .tree-container {
+      font-size: 13px;
+      line-height: 1.8;
+      max-height: 450px;
+      overflow-y: auto;
+    }
+    .tree-node {
+      padding: 6px 10px;
+      margin: 2px 0;
+      border-radius: 6px;
+      cursor: default;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 3px solid transparent;
+    }
+    .tree-node:hover { background: #f5f5f5; }
+    .tree-node.selected {
+      background: #e6f7ff;
+      border-left-color: #1890ff;
+    }
+    .tree-node .toggle {
+      cursor: pointer;
+      width: 18px; height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #999;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .tree-node .toggle:hover { color: #333; }
+    .tree-node .node-icon {
+      width: 22px; height: 22px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .node-icon.public { background: #52c41a; }
+    .node-icon.group { background: #1890ff; }
+    .node-icon.private { background: #ff4d4f; }
+    .node-icon.deleted { background: #999; }
+    .tree-node .node-title { flex: 1; }
+    .tree-node .node-tag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #f0f0f0;
+      color: #888;
+    }
+    .children { padding-left: 24px; }
+
+    /* 统计信息 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .stat-item {
+      background: #f6f8fa;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-item .stat-num {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1890ff;
+    }
+    .stat-item .stat-label {
+      font-size: 12px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .stat-item.filtered .stat-num { color: #ff4d4f; }
+    .stat-item.visible .stat-num { color: #52c41a; }
+
+    /* 操作表单 */
+    .form-group { margin-bottom: 10px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 4px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: #1890ff;
+      box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 40px; }
+
+    .btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #1890ff; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #40a9ff; }
+    .btn-danger { background: #ff4d4f; color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #ff7875; }
+    .btn-success { background: #52c41a; color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #73d13d; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #d9d9d9;
+      color: #555;
+    }
+    .btn-outline:hover:not(:disabled) { border-color: #1890ff; color: #1890ff; }
+    .btn-sm { padding: 4px 12px; font-size: 12px; }
+    .btn-group { display: flex; gap: 8px; margin-top: 12px; }
+
+    /* 操作日志 */
+    .log-container {
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 12px;
+      background: #1a1a2e;
+      color: #a8d8ea;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: "Fira Code", monospace;
+      line-height: 1.6;
+    }
+    .log-entry { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 4px 0; }
+    .log-entry:last-child { border-bottom: none; }
+    .log-time { color: #888; margin-right: 8px; }
+    .log-ok { color: #52c41a; }
+    .log-err { color: #ff4d4f; }
+    .log-info { color: #faad14; }
+    .log-deny { color: #ff4d4f; font-weight: bold; }
+    .log-grant { color: #52c41a; font-weight: bold; }
+
+    /* 对比视图 */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .comparison-card {
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .comparison-card h3 {
+      font-size: 13px;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* 安全测试结果 */
+    .test-result { padding: 8px 12px; border-radius: 6px; margin: 4px 0; font-size: 13px; }
+    .test-result.pass { background: #f6ffed; border-left: 3px solid #52c41a; }
+    .test-result.fail { background: #fff2f0; border-left: 3px solid #ff4d4f; }
+
+    /* 权限策略说明 */
+    .policy-box {
+      background: #f6f8fa;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      border-left: 3px solid #722ed1;
+    }
+    .policy-box.abac { border-left-color: #13c2c2; }
+
+    /* 响应式 */
+    @media (max-width: 1000px) {
+      .layout { flex-direction: column; }
+      .right-panel { width: 100%; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- 头部 -->
+  <div class="header">
+    <h1>🛡️ 隐私视图 <span>RBAC + ABAC</span> 测试面板</h1>
+    <p>第3步 — 基于角色和节点属性的访问控制 · 正向视图变换 · 逆向映射与权限校验</p>
+    <span class="badge rbac">RBAC: 基于角色</span>
+    <span class="badge abac">ABAC: 基于节点属性</span>
+    <span class="badge">viewNodeId → realNodeId</span>
+    <span class="badge" style="background:#52c41a;">configs/roles.json 独立管理</span>
+  </div>
+
+  <div class="status-bar">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="statusText">检查后端连接...</span>
+    <span style="flex:1"></span>
+    <button class="btn btn-outline btn-sm" onclick="loadRoles()">🔄 刷新角色</button>
+    <button class="btn btn-outline btn-sm" onclick="loadUsers()">🔄 刷新用户</button>
+    <button class="btn btn-outline btn-sm" onclick="refreshView()">🔄 刷新视图</button>
+  </div>
+
+  <div class="layout">
+    <!-- 左：视图与操作 -->
+    <div class="left-panel">
+      <!-- 用户切换 -->
+      <div class="card">
+        <h2>👤 切换用户 <span class="count" id="userCount">加载中...</span></h2>
+        <div class="user-switcher" id="userSwitcher">
+          <div style="color:#999;font-size:13px;">正在加载用户列表...</div>
+        </div>
+
+        <!-- 当前用户信息 -->
+        <div id="currentUserInfo" style="display:none;">
+          <div class="current-user">
+            <div>
+              <div class="label">当前用户</div>
+              <div class="value" id="curUserName">-</div>
+            </div>
+            <div>
+              <div class="label">角色</div>
+              <div><span class="tag" id="curUserRole">-</span></div>
+            </div>
+            <div>
+              <div class="label">用户组</div>
+              <div class="value" id="curUserGroup">-</div>
+            </div>
+            <div>
+              <div class="label">用户 ID</div>
+              <div style="font-size:12px;font-family:monospace;color:#888;" id="curUserId">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 权限策略说明 -->
+        <div class="policy-box">
+          <strong>📋 RBAC 策略</strong>：用户角色 (admin/leader/member/guest) 需在节点的 allowedRoles 中 → 可见
+        </div>
+        <div class="policy-box abac">
+          <strong>📋 ABAC 策略</strong>：public 全部可见 / group 同组可见 / private 仅 admin 可见
+        </div>
+      </div>
+
+      <!-- 视图树 -->
+      <div class="card">
+        <h2>🌳 当前用户视图 <span class="count" id="viewStats">-</span></h2>
+        <div class="tree-container" id="treeContainer">
+          <div style="color:#999;text-align:center;padding:40px 0;">请选择用户查看视图</div>
+        </div>
+      </div>
+
+      <!-- 操作日志 -->
+      <div class="card">
+        <h2>📋 操作日志</h2>
+        <div class="log-container" id="logContainer">
+          <div class="log-entry"><span class="log-time">[--:--:--]</span><span class="log-info">系统启动，选择用户查看隐私视图</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：详情与操作 -->
+    <div class="right-panel">
+      <!-- 统计 -->
+      <div class="card">
+        <h2>📊 视图统计</h2>
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-item"><div class="stat-num" id="statTotal">-</div><div class="stat-label">完整树节点</div></div>
+          <div class="stat-item visible"><div class="stat-num" id="statVisible">-</div><div class="stat-label">可见节点</div></div>
+          <div class="stat-item filtered"><div class="stat-num" id="statFiltered">-</div><div class="stat-label">已过滤</div></div>
+          <div class="stat-item"><div class="stat-num" id="statRatio">-</div><div class="stat-label">可见比例</div></div>
+        </div>
+      </div>
+
+      <!-- 角色配置展示 -->
+      <div class="card">
+        <h2>⚙️ 角色配置 <span class="count" id="rolesCount">来自 configs/roles.json</span></h2>
+        <div id="rolesContainer">
+          <div style="color:#999;font-size:13px;">正在加载角色配置...</div>
+        </div>
+      </div>
+
+      <!-- 多用户对比 -->
+      <div class="card">
+        <h2>👥 多用户对比</h2>
+        <div id="comparisonContainer">
+          <div style="color:#999;font-size:13px;">选择用户后自动对比</div>
+        </div>
+      </div>
+
+      <!-- 操作面板 -->
+      <div class="card">
+        <h2>⚡ 视图操作测试</h2>
+        <div>
+          <div class="form-group">
+            <label>操作类型</label>
+            <select id="opType">
+              <option value="update">✏️ 更新节点标题</option>
+              <option value="insert">➕ 添加子节点</option>
+              <option value="delete">🗑️ 删除节点</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>目标视图节点 ID（点击左侧节点自动填充）</label>
+            <input type="text" id="opTargetNodeId" placeholder="点击左侧节点" />
+          </div>
+          <div class="form-group" id="opPayloadGroup">
+            <label>新标题</label>
+            <input type="text" id="opPayload" placeholder='如 "A组任务-已完成"' />
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="submitOperation()" style="flex:1;">🚀 执行操作</button>
+          </div>
+          <div id="opResult" style="margin-top:10px;font-size:13px;"></div>
+        </div>
+      </div>
+
+      <!-- 安全测试 -->
+      <div class="card">
+        <h2>🔒 安全验证测试</h2>
+        <button class="btn btn-outline btn-sm" onclick="runSecurityTests()" style="width:100%;">运行权限校验测试</button>
+        <div id="securityTestResults" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 配置
+// ============================================================
+const API_BASE = "http://localhost:3001";
+
+// ============================================================
+// 状态
+// ============================================================
+let currentUser = null;
+let currentView = null;
+let allUsers = [];
+let allViews = {};  // userId → view (缓存)
+let allRoles = {};  // roleName → roleConfig
+
+// ============================================================
+// 日志
+// ============================================================
+function log(message, type = "info") {
+  const container = document.getElementById("logContainer");
+  const time = new Date().toLocaleTimeString();
+  const entry = document.createElement("div");
+  entry.className = "log-entry";
+  entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-${type}">${message}</span>`;
+  container.appendChild(entry);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ============================================================
+// API 调用
+// ============================================================
+async function apiGet(path) {
+  const res = await fetch(`${API_BASE}${path}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function apiPost(path, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// ============================================================
+// 初始化
+// ============================================================
+async function init() {
+  await checkHealth();
+  if (document.querySelector(".status-dot.online")) {
+    await loadRoles();
+    await loadUsers();
+  }
+}
+
+async function checkHealth() {
+  const dot = document.getElementById("statusDot");
+  const text = document.getElementById("statusText");
+  dot.className = "status-dot loading";
+  text.textContent = "正在连接后端...";
+  try {
+    await apiGet("/api/health");
+    dot.className = "status-dot online";
+    text.textContent = "✅ 后端在线";
+    log("后端连接成功", "ok");
+  } catch (e) {
+    dot.className = "status-dot offline";
+    text.textContent = `❌ 后端连接失败`;
+    log(`后端连接失败: ${e.message}`, "err");
+  }
+}
+
+// ============================================================
+// 角色配置加载
+// ============================================================
+async function loadRoles() {
+  try {
+    const data = await apiGet("/api/roles");
+    allRoles = data.roles || {};
+    const count = Object.keys(allRoles).length;
+    document.getElementById("rolesCount").textContent = `${count} 种角色`;
+    renderRoles();
+    log(`已加载 ${count} 种角色配置 (来自 configs/roles.json)`, "ok");
+  } catch (e) {
+    log(`加载角色配置失败: ${e.message}`, "err");
+  }
+}
+
+function renderRoles() {
+  const container = document.getElementById("rolesContainer");
+  container.innerHTML = "";
+  const roleOrder = ["admin", "leader", "member", "guest"];
+
+  roleOrder.forEach((roleName) => {
+    const role = allRoles[roleName];
+    if (!role) return;
+
+    const card = document.createElement("div");
+    card.style.cssText = `
+      border:1px solid #e8e8e8; border-radius:8px; padding:12px; margin-bottom:10px;
+      background:#fafafa;
+    `;
+
+    // 角色标题
+    const titleRow = document.createElement("div");
+    titleRow.style.cssText = `
+      display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;
+    `;
+    const roleColors = { admin: "#ff4d4f", leader: "#722ed1", member: "#1890ff", guest: "#52c41a" };
+    titleRow.innerHTML = `
+      <div>
+        <span style="font-weight:700;font-size:14px;color:${roleColors[roleName] || '#333'};
+                     background:${roleColors[roleName] || '#333'}18;
+                     padding:2px 10px; border-radius:4px;">
+          ${roleName}
+        </span>
+        ${role.priority ? `<span style="font-size:11px;color:#888;margin-left:8px;">优先级 ${role.priority}</span>` : ""}
+      </div>
+      ${role.canManageUsers ? '<span style="font-size:11px;background:#ff4d4f;color:#fff;padding:1px 8px;border-radius:4px;">管理</span>' : ""}
+    `;
+    card.appendChild(titleRow);
+
+    // 描述
+    if (role.description) {
+      const desc = document.createElement("div");
+      desc.style.cssText = "font-size:12px;color:#666;margin-bottom:8px;";
+      desc.textContent = role.description;
+      card.appendChild(desc);
+    }
+
+    // 属性表格
+    const props = [
+      { label: "查看全部", value: role.canViewAll, type: "bool" },
+      { label: "编辑全部", value: role.canEditAll, type: "bool" },
+      { label: "编辑本组", value: role.canEditOwnGroup, type: "bool" },
+      { label: "管理用户", value: role.canManageUsers, type: "bool" },
+      { label: "可见范围", value: role.allowedVisibilities ? role.allowedVisibilities.join(", ") : "-", type: "string" },
+    ];
+
+    const table = document.createElement("div");
+    table.style.cssText = "display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;";
+    props.forEach((p) => {
+      const el = document.createElement("div");
+      el.style.cssText = "font-size:11px;padding:3px 6px;border-radius:4px;background:#fff;";
+      if (p.type === "bool") {
+        const val = p.value ? "✅" : "❌";
+        el.innerHTML = `<span style="color:#888;">${p.label}</span> <strong>${val}</strong>`;
+      } else {
+        el.innerHTML = `<span style="color:#888;">${p.label}</span><br/><strong style="font-size:10px;">${p.value}</strong>`;
+      }
+      table.appendChild(el);
+    });
+    card.appendChild(table);
+
+    container.appendChild(card);
+  });
+}
+
+// ============================================================
+// 用户管理
+// ============================================================
+async function loadUsers() {
+  try {
+    const data = await apiGet("/api/users");
+    allUsers = data.users;
+    document.getElementById("userCount").textContent = `${allUsers.length} 用户`;
+    renderUserButtons();
+    log(`已加载 ${allUsers.length} 个用户`, "ok");
+    // 默认选中第一个 admin 用户
+    if (allUsers.length > 0) {
+      const admin = allUsers.find(u => u.role === "admin") || allUsers[0];
+      switchUser(admin.userId);
+    }
+  } catch (e) {
+    log(`加载用户失败: ${e.message}`, "err");
+  }
+}
+
+function renderUserButtons() {
+  const container = document.getElementById("userSwitcher");
+  container.innerHTML = "";
+  allUsers.forEach((user) => {
+    const btn = document.createElement("button");
+    btn.className = `user-btn ${currentUser?.userId === user.userId ? "active" : ""}`;
+    btn.dataset.userId = user.userId;
+    btn.innerHTML = `
+      <strong>${user.name}</strong>
+      <span class="user-role ${user.role}">${user.role} · ${user.group}</span>
+    `;
+    btn.onclick = () => switchUser(user.userId);
+    container.appendChild(btn);
+  });
+}
+
+// ============================================================
+// 用户切换
+// ============================================================
+async function switchUser(userId) {
+  const user = allUsers.find(u => u.userId === userId);
+  if (!user) return;
+
+  currentUser = user;
+  renderUserButtons();
+
+  // 更新用户信息
+  document.getElementById("currentUserInfo").style.display = "block";
+  document.getElementById("curUserName").textContent = user.name;
+  const roleTag = document.getElementById("curUserRole");
+  roleTag.textContent = user.role;
+  roleTag.className = `tag ${user.role}`;
+  document.getElementById("curUserGroup").textContent = user.group;
+  document.getElementById("curUserId").textContent = user.userId;
+
+  log(`👤 切换到用户: ${user.name} (${user.role}, ${user.group})`, "info");
+
+  // 加载视图
+  await loadView(userId);
+}
+
+// ============================================================
+// 视图加载
+// ============================================================
+async function loadView(userId) {
+  const container = document.getElementById("treeContainer");
+  container.innerHTML = '<div style="color:#999;text-align:center;padding:40px 0;">正在加载视图...</div>';
+
+  try {
+    const data = await apiGet(`/api/view/${userId}`);
+    if (data.status !== "ok") throw new Error(data.message);
+
+    currentView = data.view;
+    allViews[userId] = data.view;
+
+    // 渲染树
+    renderTree(data.view.tree);
+    updateStats(data.view.stats);
+    updateComparison();
+    log(`✅ ${data.view.userName} 的视图已加载 (可见 ${data.view.stats.visibleNodes}/${data.view.stats.totalNodes} 节点)`, "ok");
+  } catch (e) {
+    container.innerHTML = `<div style="color:#ff4d4f;text-align:center;padding:40px 0;">❌ 加载失败: ${e.message}</div>`;
+    log(`加载视图失败: ${e.message}`, "err");
+  }
+}
+
+function refreshView() {
+  if (currentUser) {
+    log("🔄 重新加载视图...", "info");
+    loadView(currentUser.userId);
+  }
+}
+
+// ============================================================
+// 渲染树
+// ============================================================
+function renderTree(tree) {
+  const container = document.getElementById("treeContainer");
+  container.innerHTML = "";
+  if (!tree) {
+    container.innerHTML = '<div style="color:#999;text-align:center;padding:40px 0;">该用户没有可见节点</div>';
+    return;
+  }
+  const rootEl = renderNode(tree);
+  container.appendChild(rootEl);
+}
+
+function renderNode(node) {
+  const wrapper = document.createElement("div");
+  const line = document.createElement("div");
+  line.className = "tree-node";
+  line.dataset.nodeId = node.viewNodeId;
+  line.onclick = () => selectViewNode(node.viewNodeId);
+
+  // toggle
+  const toggle = document.createElement("span");
+  toggle.className = "toggle";
+  if (node.children && node.children.length > 0) {
+    toggle.textContent = "▼";
+    let expanded = true;
+    toggle.onclick = (e) => {
+      e.stopPropagation();
+      expanded = !expanded;
+      toggle.textContent = expanded ? "▼" : "▶";
+      const childrenEl = wrapper.querySelector(".children");
+      if (childrenEl) childrenEl.style.display = expanded ? "block" : "none";
+    };
+  } else {
+    toggle.textContent = "  ";
+  }
+  line.appendChild(toggle);
+
+  // icon
+  const icon = document.createElement("span");
+  icon.className = `node-icon ${node.visibility}`;
+  icon.textContent = node.visibility === "public" ? "🌐" : node.visibility === "group" ? "👥" : "🔒";
+  line.appendChild(icon);
+
+  // title
+  const title = document.createElement("span");
+  title.className = "node-title";
+  title.textContent = node.title || "(untitled)";
+  line.appendChild(title);
+
+  // tags
+  if (node.ownerGroup && node.ownerGroup !== "all") {
+    const tag = document.createElement("span");
+    tag.className = "node-tag";
+    tag.textContent = node.ownerGroup;
+    line.appendChild(tag);
+  }
+
+  wrapper.appendChild(line);
+
+  // children
+  if (node.children && node.children.length > 0) {
+    const childrenContainer = document.createElement("div");
+    childrenContainer.className = "children";
+    node.children.forEach((child) => {
+      childrenContainer.appendChild(renderNode(child));
+    });
+    wrapper.appendChild(childrenContainer);
+  }
+
+  return wrapper;
+}
+
+function selectViewNode(viewNodeId) {
+  document.getElementById("opTargetNodeId").value = viewNodeId;
+  document.querySelectorAll(".tree-node").forEach((el) => {
+    el.classList.toggle("selected", el.dataset.nodeId === viewNodeId);
+  });
+}
+
+// ============================================================
+// 统计信息
+// ============================================================
+function updateStats(stats) {
+  if (!stats) return;
+  document.getElementById("statTotal").textContent = stats.totalNodes;
+  document.getElementById("statVisible").textContent = stats.visibleNodes;
+  document.getElementById("statFiltered").textContent = stats.filteredNodes;
+  const ratio = stats.totalNodes > 0
+    ? Math.round((stats.visibleNodes / stats.totalNodes) * 100) + "%"
+    : "-";
+  document.getElementById("statRatio").textContent = ratio;
+  document.getElementById("viewStats").textContent =
+    `${stats.visibleNodes} 可见 / ${stats.totalNodes} 总计`;
+}
+
+// ============================================================
+// 多用户对比
+// ============================================================
+async function updateComparison() {
+  const container = document.getElementById("comparisonContainer");
+  container.innerHTML = "";
+
+  // 加载所有用户的视图对比
+  const viewPromises = allUsers.map(async (user) => {
+    if (!allViews[user.userId]) {
+      try {
+        const data = await apiGet(`/api/view/${user.userId}`);
+        allViews[user.userId] = data.view;
+      } catch (e) {
+        return null;
+      }
+    }
+    return allViews[user.userId];
+  });
+
+  const views = await Promise.all(viewPromises);
+  const validViews = views.filter(v => v !== null);
+
+  validViews.forEach((view) => {
+    const card = document.createElement("div");
+    card.style.cssText = `
+      display:flex; justify-content:space-between; align-items:center;
+      padding:8px 12px; border-radius:6px; margin:4px 0;
+      background: ${view.userId === currentUser?.userId ? '#e6f7ff' : '#fafafa'};
+      border-left: 3px solid ${view.userId === currentUser?.userId ? '#1890ff' : '#e8e8e8'};
+      font-size:13px; cursor:pointer;
+    `;
+    card.innerHTML = `
+      <div>
+        <strong>${view.userName}</strong>
+        <span style="font-size:11px;color:#888;margin-left:8px;">${view.role}</span>
+      </div>
+      <div>
+        <span style="color:#52c41a;font-weight:600;">${view.stats.visibleNodes}</span>
+        <span style="color:#888;">/ ${view.stats.totalNodes}</span>
+        ${view.stats.filteredNodes > 0
+          ? `<span style="color:#ff4d4f;font-size:11px;margin-left:6px;">-${view.stats.filteredNodes}</span>`
+          : ""}
+      </div>
+    `;
+    card.onclick = () => switchUser(view.userId);
+    container.appendChild(card);
+  });
+}
+
+// ============================================================
+// 提交操作
+// ============================================================
+async function submitOperation() {
+  if (!currentUser) {
+    log("请先选择一个用户", "err");
+    return;
+  }
+
+  const opType = document.getElementById("opType").value;
+  const targetNodeId = document.getElementById("opTargetNodeId").value.trim();
+  const payload = document.getElementById("opPayload").value.trim();
+
+  if (!targetNodeId && opType !== "insert") {
+    log("请填写或点击选择目标节点 ID", "err");
+    return;
+  }
+
+  const operation = {
+    type: opType,
+    payload: {}
+  };
+
+  if (opType === "insert") {
+    operation.parentViewNodeId = targetNodeId || "root";
+    operation.payload = { title: payload || "新节点" };
+  } else if (opType === "update") {
+    operation.viewNodeId = targetNodeId;
+    operation.payload = { title: payload || "已更新的标题" };
+  } else if (opType === "delete") {
+    operation.viewNodeId = targetNodeId;
+  }
+
+  try {
+    const result = await apiPost("/api/operation", {
+      userId: currentUser.userId,
+      operation,
+    });
+
+    const resultDiv = document.getElementById("opResult");
+    if (result.status === "accepted") {
+      resultDiv.innerHTML = `<div class="test-result pass">✅ ${result.message}</div>`;
+      log(`✅ ${currentUser.name} 操作成功: ${result.message}`, "grant");
+    } else if (result.status === "rejected") {
+      resultDiv.innerHTML = `<div class="test-result fail">❌ ${result.message}</div>`;
+      log(`⛔ ${currentUser.name} 操作被拒绝: ${result.message}`, "deny");
+    } else {
+      resultDiv.innerHTML = `<div class="test-result fail">❌ ${result.message}</div>`;
+    }
+
+    // 刷新视图
+    await loadView(currentUser.userId);
+  } catch (e) {
+    log(`操作失败: ${e.message}`, "err");
+  }
+}
+
+// ============================================================
+// 安全测试
+// ============================================================
+async function runSecurityTests() {
+  const container = document.getElementById("securityTestResults");
+  container.innerHTML = '<div style="color:#999;font-size:13px;">运行测试中...</div>';
+  log("🔒 开始运行安全验证测试...", "info");
+
+  const tests = [];
+
+  // Test 1: Admin 应该能看到所有节点
+  tests.push({
+    name: "Admin 可见全部 5 个节点",
+    run: async () => {
+      const data = await apiGet("/api/view/admin01");
+      return data.view.stats.visibleNodes === 5;
+    }
+  });
+
+  // Test 2: memberA1 不能看到 B组任务
+  tests.push({
+    name: "memberA1 不能看到 B组任务 和 管理员备注",
+    run: async () => {
+      const data = await apiGet("/api/view/memberA1");
+      const tree = data.view.tree;
+      function check(node) {
+        if (node.title === "B组任务" || node.title === "管理员备注") return false;
+        for (const c of (node.children || [])) {
+          if (!check(c)) return false;
+        }
+        return true;
+      }
+      return check(tree) && data.view.stats.visibleNodes === 3;
+    }
+  });
+
+  // Test 3: guest 只能看到 public 节点
+  tests.push({
+    name: "guest01 只能看到 public 节点（共 2 个）",
+    run: async () => {
+      const data = await apiGet("/api/view/guest01");
+      return data.view.stats.visibleNodes === 2;
+    }
+  });
+
+  // Test 4: memberA1 能更新 A组任务
+  tests.push({
+    name: "memberA1 允许更新 A组任务",
+    run: async () => {
+      const data = await apiGet("/api/view/memberA1");
+      const aTask = data.view.tree.children.find(c => c.title.includes("A组"));
+      if (!aTask) return false;
+      const result = await apiPost("/api/operation", {
+        userId: "memberA1",
+        operation: { type: "update", viewNodeId: aTask.viewNodeId, payload: { title: "A组任务-验证通过" } }
+      });
+      return result.status === "accepted";
+    }
+  });
+
+  // Test 5: memberA1 不能更新 B组任务
+  tests.push({
+    name: "memberA1 拒绝更新 B组任务（越权）",
+    run: async () => {
+      const data = await apiGet("/api/view/memberB1");
+      const bTask = data.view.tree.children.find(c => c.title.includes("B组"));
+      if (!bTask) return false;
+      const result = await apiPost("/api/operation", {
+        userId: "memberA1",
+        operation: { type: "update", viewNodeId: bTask.viewNodeId, payload: { title: "越权修改" } }
+      });
+      return result.status === "rejected";
+    }
+  });
+
+  // Test 6: guest 不能更新任何节点
+  tests.push({
+    name: "guest01 拒绝所有编辑操作",
+    run: async () => {
+      const data = await apiGet("/api/view/guest01");
+      const publicNode = data.view.tree.children[0];
+      if (!publicNode) return false;
+      const result = await apiPost("/api/operation", {
+        userId: "guest01",
+        operation: { type: "update", viewNodeId: publicNode.viewNodeId, payload: { title: "越权" } }
+      });
+      return result.status === "rejected";
+    }
+  });
+
+  // 执行测试
+  let passed = 0;
+  let failed = 0;
+  container.innerHTML = "";
+
+  for (const test of tests) {
+    try {
+      const result = await test.run();
+      if (result) {
+        passed++;
+        container.innerHTML += `<div class="test-result pass">✅ ${test.name}</div>`;
+        log(`✅ 测试通过: ${test.name}`, "ok");
+      } else {
+        failed++;
+        container.innerHTML += `<div class="test-result fail">❌ ${test.name}</div>`;
+        log(`❌ 测试失败: ${test.name}`, "err");
+      }
+    } catch (e) {
+      failed++;
+      container.innerHTML += `<div class="test-result fail">❌ ${test.name} (异常: ${e.message})</div>`;
+      log(`❌ 测试异常: ${test.name} — ${e.message}`, "err");
+    }
+  }
+
+  container.innerHTML += `
+    <div style="margin-top:12px;padding:12px;border-radius:8px;background:#f6f8fa;text-align:center;">
+      <strong style="font-size:16px;">
+        ${passed === tests.length ? '🎉' : '⚠️'}
+        通过 ${passed}/${tests.length}
+      </strong>
+    </div>
+  `;
+
+  log(`🔒 安全测试完成: ${passed}/${tests.length} 通过`, passed === tests.length ? "ok" : "info");
+
+  // 刷新当前用户视图
+  if (currentUser) await loadView(currentUser.userId);
+}
+
+// ============================================================
+// 启动
+// ============================================================
+init();
+</script>
+</body>
+</html>
