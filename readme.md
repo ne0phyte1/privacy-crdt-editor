@@ -14,3 +14,12 @@ npm run dev
 cd frontend
 npm install
 npm run dev
+```
+
+## 测试
+单元测试位于 `test/module-test/`，详见 [test/module-test/README.md](test/module-test/README.md)。
+
+```bash
+cd backend
+npm test
+```

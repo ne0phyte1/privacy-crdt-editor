@@ -149,5 +149,5 @@ test/module-test/
 ├── step3-accessControl.test.ts    ← 38 用例: RBAC + ABAC 权限校验
 ├── step3-viewBuilder.test.ts      ← 22 用例: 正向视图变换
 ├── step3-inverseMapper.test.ts    ← 31 用例: 逆向映射与权限校验
-└── test-summary.md                ← 本文件
+└── README.md                     ← 本文件
 ```
