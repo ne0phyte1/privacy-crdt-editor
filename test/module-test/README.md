@@ -1,4 +1,4 @@
-# 模块单元测试说明
+# 第4步-第5步模块单元测试说明
 
 ## 运行环境
 
@@ -33,22 +33,22 @@ npx tsx --test --test-reporter spec test/module-test/viewBuilder.test.ts
 
 ### 第4步（SQLite 数据库迁移 + 正向视图变换）
 
-| 文件 | 依赖 DB | 测试内容 |
-|------|:-------:|---------|
-| `database.test.ts` | 是 | 数据库初始化、三张表结构验证、WAL 模式、外键约束、种子数据幂等性 |
-| `userStore.test.ts` | 是 | 用户 CRUD：`findUserByUserId` / `findUserByUsername` / `getAllUsers` / `createUser` / `updateUser`（动态字段）/ `deleteUser` / `getUserCount` |
-| `roleStore.test.ts` | 是 | 角色 CRUD：`getRoleConfig` / `getAllRoleConfigs` / `roleExists` / `createRole` / `updateRole` / `deleteRole` / `toRoleConfig` 类型转换（INTEGER→boolean、JSON→数组） |
-| `operationLogStore.test.ts` | 是 | 操作日志：`logOperation`（含可选字段）/ `getOperationLogs`（分页、按 userId 筛选、降序排列） |
-| `authService.test.ts` | 是 | 认证服务：`register`（字段验证、唯一性检查、密码长度）/ `login`（密码验证）/ `verifyToken` / `extractToken` / 注册→登录→验证全流程 |
-| `accessControl.test.ts` | 否 | 纯函数权限校验：`checkRBAC`（角色白名单、admin 通吃、已删除节点）/ `checkABAC`（public/group/private 可见性）/ `canAccessNode`（RBAC+ABAC 组合） |
-| `accessControl-db.test.ts` | 是 | DB 依赖权限校验：`canEditNode`（admin/leader/member/guest 编辑权、root 保护、跨组拦截）/ `getUserById` / `getAllUsers` / `getAllRoles` |
-| `viewBuilder.test.ts` | 否 | 正向视图变换：`buildViewTree`（5 角色×5 节点完整过滤矩阵）/ `buildUserView`（统计信息 totalNodeCount / filteredCount / visibleNodeCount）/ `findViewNode`（递归查找、空树处理） |
+| 文件                          | 依赖 DB | 测试内容                                                                                                                                                     |
+| --------------------------- |:-----:| -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `database.test.ts`          | 是     | 数据库初始化、三张表结构验证、WAL 模式、外键约束、种子数据幂等性                                                                                                                       |
+| `userStore.test.ts`         | 是     | 用户 CRUD：`findUserByUserId` / `findUserByUsername` / `getAllUsers` / `createUser` / `updateUser`（动态字段）/ `deleteUser` / `getUserCount`                     |
+| `roleStore.test.ts`         | 是     | 角色 CRUD：`getRoleConfig` / `getAllRoleConfigs` / `roleExists` / `createRole` / `updateRole` / `deleteRole` / `toRoleConfig` 类型转换（INTEGER→boolean、JSON→数组） |
+| `operationLogStore.test.ts` | 是     | 操作日志：`logOperation`（含可选字段）/ `getOperationLogs`（分页、按 userId 筛选、降序排列）                                                                                      |
+| `authService.test.ts`       | 是     | 认证服务：`register`（字段验证、唯一性检查、密码长度）/ `login`（密码验证）/ `verifyToken` / `extractToken` / 注册→登录→验证全流程                                                            |
+| `accessControl.test.ts`     | 否     | 纯函数权限校验：`checkRBAC`（角色白名单、admin 通吃、已删除节点）/ `checkABAC`（public/group/private 可见性）/ `canAccessNode`（RBAC+ABAC 组合）                                          |
+| `accessControl-db.test.ts`  | 是     | DB 依赖权限校验：`canEditNode`（admin/leader/member/guest 编辑权、root 保护、跨组拦截）/ `getUserById` / `getAllUsers` / `getAllRoles`                                       |
+| `viewBuilder.test.ts`       | 否     | 正向视图变换：`buildViewTree`（5 角色×5 节点完整过滤矩阵）/ `buildUserView`（统计信息 totalNodeCount / filteredCount / visibleNodeCount）/ `findViewNode`（递归查找、空树处理）              |
 
 ### 第5步（逆向映射）
 
-| 文件 | 依赖 DB | 测试内容 |
-|------|:-------:|---------|
-| `inverseMapper.test.ts` | 是 | 逆向映射引擎：`mapAndValidateOperation` 的 insert / update / delete 三种操作；权限校验（admin 通吃、同组可编辑、跨组拒绝、guest 无编辑权）；root 节点防删除保护；缺少必填字段错误处理；节点不存在错误处理；未知操作类型错误处理；映射表回退逻辑 |
+| 文件                      | 依赖 DB | 测试内容                                                                                                                                                       |
+| ----------------------- |:-----:| ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `inverseMapper.test.ts` | 是     | 逆向映射引擎：`mapAndValidateOperation` 的 insert / update / delete 三种操作；权限校验（admin 通吃、同组可编辑、跨组拒绝、guest 无编辑权）；root 节点防删除保护；缺少必填字段错误处理；节点不存在错误处理；未知操作类型错误处理；映射表回退逻辑 |
 
 ## 测试统计
 
