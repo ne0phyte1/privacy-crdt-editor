@@ -5,6 +5,16 @@
 - Node.js >= 22
 - 在项目根目录执行命令
 
+## 前置步骤（必须）
+
+测试依赖 `better-sqlite3` 等后端依赖，**必须先安装**：
+
+```bash
+cd backend
+npm install
+cd ..
+```
+
 ## 运行全部测试
 
 ```bash
@@ -52,7 +62,7 @@ npx tsx --test --test-reporter spec test/module-test/viewBuilder.test.ts
 
 ## 测试统计
 
-共 **9 个测试文件**，**165 条测试用例**（全部通过）。
+共 **11 个测试文件**，**214 条测试用例**（全部通过）。
 
 ---
 
