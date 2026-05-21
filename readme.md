@@ -18,13 +18,17 @@ cd frontend
 npm install
 npm run dev
 
+
+```
+
 测试
 --
 
-单元测试位于 `test/module-test/`，详见 [test/module-test/README.md](https://github.com/ne0phyte1/privacy-crdt-editor/blob/module_test/test2_and_test3/test/module-test/README.md)。
+单元测试位于 `test/module-test/`，详见 [test/module-test/README.md](https://github.com/ne0phyte1/privacy-crdt-editor/blob/module_test/test2_and_test3/test/module-test/README.md)。
 
 ```shell
-cd backendnpm test
+npx tsx --test --test-reporter spec --test-concurrency=1 test/module-test/*.test.ts    # 运行全部测试文件
+npx tsx --test --test-reporter spec test/module-test/<文件名>.test.ts    # 运行单个测试文件
 ```
 
 
