@@ -1,0 +1,1476 @@
+{
+  "generatedAt": "2026-05-21T07:37:51.552Z",
+  "summary": {
+    "files": 1,
+    "suites": 42,
+    "tests": 214,
+    "passed": 214,
+    "failed": 0,
+    "durationMs": 5254.5196
+  },
+  "suites": [
+    {
+      "name": "canEditNode — 编辑权限校验",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 可以编辑任意非 root 节点（canEditAll = true）",
+          "passed": true,
+          "durationMs": 1.2839
+        },
+        {
+          "name": "只有 admin 可以编辑 root 节点",
+          "passed": true,
+          "durationMs": 0.2791
+        },
+        {
+          "name": "已删除节点不能编辑",
+          "passed": true,
+          "durationMs": 0.2458
+        },
+        {
+          "name": "leader 可以编辑本组的 group 节点",
+          "passed": true,
+          "durationMs": 0.5332
+        },
+        {
+          "name": "leader 不可以编辑其他组的 group 节点",
+          "passed": true,
+          "durationMs": 0.4198
+        },
+        {
+          "name": "member 可以编辑本组的 group 节点",
+          "passed": true,
+          "durationMs": 0.2776
+        },
+        {
+          "name": "member 不可以编辑其他组的 group 节点",
+          "passed": true,
+          "durationMs": 0.2502
+        },
+        {
+          "name": "leader 和 member 不可以编辑 private 节点",
+          "passed": true,
+          "durationMs": 0.3118
+        },
+        {
+          "name": "guest 不能编辑任何节点（canEditOwnGroup = false）",
+          "passed": true,
+          "durationMs": 0.3673
+        },
+        {
+          "name": "leader 和 member 可以编辑 public 节点",
+          "passed": true,
+          "durationMs": 0.4355
+        },
+        {
+          "name": "即使有 canEditOwnGroup，也必须先有查看权限（RBAC 不通过则不能编辑）",
+          "passed": true,
+          "durationMs": 0.2384
+        }
+      ],
+      "passed": 11,
+      "failed": 0,
+      "durationMs": 5.7914
+    },
+    {
+      "name": "accessControl — 用户/角色查询（SQLite 数据源）",
+      "file": "",
+      "tests": [
+        {
+          "name": "getUserById: 获取存在的用户",
+          "passed": true,
+          "durationMs": 0.5076
+        },
+        {
+          "name": "getUserById: 不存在的用户返回 undefined",
+          "passed": true,
+          "durationMs": 0.2922
+        },
+        {
+          "name": "getAllUsers: 返回所有用户",
+          "passed": true,
+          "durationMs": 0.6061
+        },
+        {
+          "name": "getAllRoles: 返回所有角色配置",
+          "passed": true,
+          "durationMs": 0.4338
+        },
+        {
+          "name": "getRoleConfig: 返回指定角色配置",
+          "passed": true,
+          "durationMs": 0.3534
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "durationMs": 2.4495
+    },
+    {
+      "name": "checkRBAC — 基于角色的访问控制",
+      "file": "",
+      "tests": [
+        {
+          "name": "root 节点始终可见（无论用户角色）",
+          "passed": true,
+          "durationMs": 1.2627
+        },
+        {
+          "name": "admin 角色可以访问任意节点",
+          "passed": true,
+          "durationMs": 0.1748
+        },
+        {
+          "name": "已删除节点对非 admin 不可见",
+          "passed": true,
+          "durationMs": 0.1416
+        },
+        {
+          "name": "已删除节点对 admin 可见",
+          "passed": true,
+          "durationMs": 0.12
+        },
+        {
+          "name": "用户 role 在 allowedRoles 中 → 通过",
+          "passed": true,
+          "durationMs": 0.1217
+        },
+        {
+          "name": "用户 role 不在 allowedRoles 中 → 拒绝",
+          "passed": true,
+          "durationMs": 0.1214
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "durationMs": 3.2303
+    },
+    {
+      "name": "checkABAC — 基于节点属性的访问控制",
+      "file": "",
+      "tests": [
+        {
+          "name": "root 节点始终可见",
+          "passed": true,
+          "durationMs": 0.3564
+        },
+        {
+          "name": "admin 可以访问任意节点",
+          "passed": true,
+          "durationMs": 0.2482
+        },
+        {
+          "name": "已删除节点对非 admin 不可见",
+          "passed": true,
+          "durationMs": 0.2092
+        },
+        {
+          "name": "已删除节点对 admin 可见",
+          "passed": true,
+          "durationMs": 0.2589
+        },
+        {
+          "name": "所有用户可见（member）",
+          "passed": true,
+          "durationMs": 0.1532
+        },
+        {
+          "name": "所有用户可见（guest）",
+          "passed": true,
+          "durationMs": 0.1031
+        },
+        {
+          "name": "visibility = public",
+          "passed": true,
+          "durationMs": 0.3655
+        },
+        {
+          "name": "同组用户可见",
+          "passed": true,
+          "durationMs": 0.1352
+        },
+        {
+          "name": "不同组用户不可见",
+          "passed": true,
+          "durationMs": 0.0987
+        },
+        {
+          "name": "visibility = group",
+          "passed": true,
+          "durationMs": 0.3195
+        },
+        {
+          "name": "非 admin 不可见",
+          "passed": true,
+          "durationMs": 0.1549
+        },
+        {
+          "name": "admin 可见",
+          "passed": true,
+          "durationMs": 0.1579
+        },
+        {
+          "name": "visibility = private",
+          "passed": true,
+          "durationMs": 0.4026
+        }
+      ],
+      "passed": 13,
+      "failed": 0,
+      "durationMs": 2.5617
+    },
+    {
+      "name": "canAccessNode — RBAC + ABAC 组合策略",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 可以访问任意节点",
+          "passed": true,
+          "durationMs": 0.1801
+        },
+        {
+          "name": "root 节点始终可访问",
+          "passed": true,
+          "durationMs": 0.0846
+        },
+        {
+          "name": "RBAC 通过 + ABAC 通过 → 允许访问",
+          "passed": true,
+          "durationMs": 0.0941
+        },
+        {
+          "name": "RBAC 通过 + ABAC 拒绝 → 拒绝访问",
+          "passed": true,
+          "durationMs": 0.1099
+        },
+        {
+          "name": "RBAC 拒绝 + ABAC 通过 → 拒绝访问",
+          "passed": true,
+          "durationMs": 0.0944
+        },
+        {
+          "name": "已删除节点：admin 可见",
+          "passed": true,
+          "durationMs": 0.0897
+        },
+        {
+          "name": "已删除节点：非 admin 不可见",
+          "passed": true,
+          "durationMs": 0.0879
+        }
+      ],
+      "passed": 7,
+      "failed": 0,
+      "durationMs": 0.9154
+    },
+    {
+      "name": "authService.register — 边界校验",
+      "file": "",
+      "tests": [
+        {
+          "name": "⚠️ BUG: register() 不校验 userId 字段（与 server.ts 不一致）",
+          "passed": true,
+          "durationMs": 93.4165
+        },
+        {
+          "name": "register() 对缺少 username 返回失败",
+          "passed": true,
+          "durationMs": 0.3433
+        },
+        {
+          "name": "register() 对缺少 password 返回失败",
+          "passed": true,
+          "durationMs": 0.2494
+        },
+        {
+          "name": "register() 对缺少 name 返回失败",
+          "passed": true,
+          "durationMs": 0.4066
+        },
+        {
+          "name": "register() role 默认值 = 'member', groupName 默认值 = 'default'",
+          "passed": true,
+          "durationMs": 66.9941
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "durationMs": 162.2388
+    },
+    {
+      "name": "authService.login — 边界校验",
+      "file": "",
+      "tests": [
+        {
+          "name": "login() 对空凭据返回失败",
+          "passed": true,
+          "durationMs": 0.3845
+        },
+        {
+          "name": "login() 成功返回的 token 可被 verifyToken 解析",
+          "passed": true,
+          "durationMs": 66.7392
+        },
+        {
+          "name": "extractToken() 处理含多余空格的 Bearer header",
+          "passed": true,
+          "durationMs": 0.4197
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "durationMs": 67.8828
+    },
+    {
+      "name": "checkABAC — 边界输入",
+      "file": "",
+      "tests": [
+        {
+          "name": "visibility 为无效值 → 返回 false",
+          "passed": true,
+          "durationMs": 0.48
+        },
+        {
+          "name": "allowedRoles 为空数组 → RBAC 检查不通过（但 ABAC 不受影响）",
+          "passed": true,
+          "durationMs": 0.2936
+        },
+        {
+          "name": "ownerGroup 为空字符串 → group 检查不通过",
+          "passed": true,
+          "durationMs": 0.2493
+        },
+        {
+          "name": "admin 对任意 visibility 值都可见",
+          "passed": true,
+          "durationMs": 0.2349
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "durationMs": 1.4732
+    },
+    {
+      "name": "canAccessNode — 组合校验边界",
+      "file": "",
+      "tests": [
+        {
+          "name": "RBAC 通过 (allowedRoles=[]) + ABAC 通过 (public) → 拒绝（RBAC 拒绝）",
+          "passed": true,
+          "durationMs": 0.361
+        },
+        {
+          "name": "deleted 节点 + admin → canAccessNode 直接返回 true（不经过 RBAC/ABAC）",
+          "passed": true,
+          "durationMs": 0.2532
+        },
+        {
+          "name": "deleted 节点 + 非 admin → canAccessNode 直接返回 false",
+          "passed": true,
+          "durationMs": 0.2322
+        },
+        {
+          "name": "canAccessNode 与 checkRBAC/checkABAC 对 root 行为一致",
+          "passed": true,
+          "durationMs": 0.4203
+        },
+        {
+          "name": "⚠️ BUG: root.deleted=true 时 canAccessNode 对非 admin 返回 false",
+          "passed": true,
+          "durationMs": 0.5981
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "durationMs": 2.0861
+    },
+    {
+      "name": "canEditNode — 边界校验",
+      "file": "",
+      "tests": [
+        {
+          "name": "role 不在 roleStore 中 → canEditNode 返回 false（保守拒绝）",
+          "passed": true,
+          "durationMs": 0.582
+        },
+        {
+          "name": "leader 可编辑 public 节点",
+          "passed": true,
+          "durationMs": 0.5855
+        },
+        {
+          "name": "member 可编辑 public 节点",
+          "passed": true,
+          "durationMs": 0.3914
+        },
+        {
+          "name": "guest 不可编辑任何节点（canEditOwnGroup = false）",
+          "passed": true,
+          "durationMs": 0.4188
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "durationMs": 2.2123
+    },
+    {
+      "name": "register — 用户注册",
+      "file": "",
+      "tests": [
+        {
+          "name": "成功注册新用户并返回 JWT + 用户信息",
+          "passed": true,
+          "durationMs": 92.2144
+        },
+        {
+          "name": "缺少必填字段时返回失败",
+          "passed": true,
+          "durationMs": 0.3147
+        },
+        {
+          "name": "密码长度不足 6 位时返回失败",
+          "passed": true,
+          "durationMs": 0.2516
+        },
+        {
+          "name": "重复用户名被拒绝",
+          "passed": true,
+          "durationMs": 67.1315
+        },
+        {
+          "name": "重复 userId 被拒绝",
+          "passed": true,
+          "durationMs": 66.4559
+        },
+        {
+          "name": "不传 role 和 groupName 时使用默认值 member / default",
+          "passed": true,
+          "durationMs": 67.1873
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "durationMs": 294.4047
+    },
+    {
+      "name": "login — 用户登录",
+      "file": "",
+      "tests": [
+        {
+          "name": "正确凭据登录成功并返回 JWT",
+          "passed": true,
+          "durationMs": 65.0854
+        },
+        {
+          "name": "错误密码登录失败（返回 401）",
+          "passed": true,
+          "durationMs": 66.1116
+        },
+        {
+          "name": "不存在的用户登录失败",
+          "passed": true,
+          "durationMs": 0.6931
+        },
+        {
+          "name": "空用户名和密码返回失败",
+          "passed": true,
+          "durationMs": 0.4333
+        },
+        {
+          "name": "登录后返回的 token 可以验证成功",
+          "passed": true,
+          "durationMs": 67.2523
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "durationMs": 265.9914
+    },
+    {
+      "name": "verifyToken — JWT 令牌验证",
+      "file": "",
+      "tests": [
+        {
+          "name": "有效 token 返回 payload",
+          "passed": true,
+          "durationMs": 66.3941
+        },
+        {
+          "name": "无效 token 返回 null",
+          "passed": true,
+          "durationMs": 0.3794
+        },
+        {
+          "name": "空字符串返回 null",
+          "passed": true,
+          "durationMs": 0.2542
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "durationMs": 67.1737
+    },
+    {
+      "name": "extractToken — 从请求头解析 Bearer Token",
+      "file": "",
+      "tests": [
+        {
+          "name": "正确解析 Bearer Token",
+          "passed": true,
+          "durationMs": 0.303
+        },
+        {
+          "name": "无 Authorization 头返回 null",
+          "passed": true,
+          "durationMs": 0.3059
+        },
+        {
+          "name": "非 Bearer 格式返回 null",
+          "passed": true,
+          "durationMs": 0.2292
+        },
+        {
+          "name": "空字符串返回 null",
+          "passed": true,
+          "durationMs": 0.2084
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "durationMs": 1.8671
+    },
+    {
+      "name": "authService — 全流程集成",
+      "file": "",
+      "tests": [
+        {
+          "name": "注册 → 用注册密码登录 → 验证 token",
+          "passed": true,
+          "durationMs": 130.77
+        }
+      ],
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 130.8821
+    },
+    {
+      "name": "getDatabase — 数据库单例",
+      "file": "",
+      "tests": [
+        {
+          "name": "返回 Database 对象",
+          "passed": true,
+          "durationMs": 0.6069
+        },
+        {
+          "name": "多次调用返回同一实例（单例）",
+          "passed": true,
+          "durationMs": 0.215
+        },
+        {
+          "name": "数据库文件存在",
+          "passed": true,
+          "durationMs": 4.5558
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "durationMs": 6.2179
+    },
+    {
+      "name": "initializeDatabase — 表结构验证",
+      "file": "",
+      "tests": [
+        {
+          "name": "users 表存在",
+          "passed": true,
+          "durationMs": 0.373
+        },
+        {
+          "name": "roles 表存在",
+          "passed": true,
+          "durationMs": 0.2104
+        },
+        {
+          "name": "operation_logs 表存在",
+          "passed": true,
+          "durationMs": 0.2212
+        },
+        {
+          "name": "users 表包含所有必要字段",
+          "passed": true,
+          "durationMs": 0.2729
+        },
+        {
+          "name": "roles 表包含所有必要字段",
+          "passed": true,
+          "durationMs": 0.2939
+        },
+        {
+          "name": "operation_logs 表包含所有必要字段",
+          "passed": true,
+          "durationMs": 0.3309
+        },
+        {
+          "name": "users 表 user_id 有 UNIQUE 约束",
+          "passed": true,
+          "durationMs": 0.4204
+        },
+        {
+          "name": "WAL 模式已启用",
+          "passed": true,
+          "durationMs": 0.1263
+        }
+      ],
+      "passed": 8,
+      "failed": 0,
+      "durationMs": 2.6798
+    },
+    {
+      "name": "种子数据验证",
+      "file": "",
+      "tests": [
+        {
+          "name": "users 表中有 7 个默认用户",
+          "passed": true,
+          "durationMs": 0.1803
+        },
+        {
+          "name": "默认用户列表包含 admin01",
+          "passed": true,
+          "durationMs": 0.1471
+        },
+        {
+          "name": "roles 表中有 4 个默认角色",
+          "passed": true,
+          "durationMs": 0.1219
+        },
+        {
+          "name": "默认角色包含 admin / leader / member / guest",
+          "passed": true,
+          "durationMs": 0.7117
+        },
+        {
+          "name": "重复调用 seedDefaultUsers 不会插入重复数据",
+          "passed": true,
+          "durationMs": 0.1586
+        },
+        {
+          "name": "重复调用 seedDefaultRoles 不会插入重复数据",
+          "passed": true,
+          "durationMs": 0.1358
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "durationMs": 1.7171
+    },
+    {
+      "name": "mapAndValidateOperation — insert 操作",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 可以在 root 下插入新节点",
+          "passed": true,
+          "durationMs": 1.0669
+        },
+        {
+          "name": "admin 可以在 group 节点下插入子节点",
+          "passed": true,
+          "durationMs": 0.3487
+        },
+        {
+          "name": "leaderA 可以在 A 组节点下插入",
+          "passed": true,
+          "durationMs": 0.2571
+        },
+        {
+          "name": "memberA1 不可以在 B 组节点下插入（跨组）",
+          "passed": true,
+          "durationMs": 0.2084
+        },
+        {
+          "name": "guest 不能在任意节点下插入（无编辑权限）",
+          "passed": true,
+          "durationMs": 0.1768
+        },
+        {
+          "name": "缺少 parentViewNodeId 返回失败",
+          "passed": true,
+          "durationMs": 0.1241
+        },
+        {
+          "name": "父节点不存在返回失败",
+          "passed": true,
+          "durationMs": 0.176
+        },
+        {
+          "name": "插入时 payload 使用默认值填充",
+          "passed": true,
+          "durationMs": 0.2015
+        }
+      ],
+      "passed": 8,
+      "failed": 0,
+      "durationMs": 3.6466
+    },
+    {
+      "name": "mapAndValidateOperation — update 操作",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 可以更新任意节点",
+          "passed": true,
+          "durationMs": 0.4058
+        },
+        {
+          "name": "leaderA 可以更新本组的 group 节点",
+          "passed": true,
+          "durationMs": 0.2127
+        },
+        {
+          "name": "memberB1 不可以更新 A 组节点（跨组）",
+          "passed": true,
+          "durationMs": 0.1758
+        },
+        {
+          "name": "guest 不可以更新任意节点",
+          "passed": true,
+          "durationMs": 0.175
+        },
+        {
+          "name": "缺少 viewNodeId 返回失败",
+          "passed": true,
+          "durationMs": 0.1173
+        },
+        {
+          "name": "更新的节点不存在返回失败",
+          "passed": true,
+          "durationMs": 0.1006
+        },
+        {
+          "name": "update 可以部分更新字段（只有传入的字段出现在 payload 中）",
+          "passed": true,
+          "durationMs": 0.2315
+        }
+      ],
+      "passed": 7,
+      "failed": 0,
+      "durationMs": 1.7131
+    },
+    {
+      "name": "mapAndValidateOperation — delete 操作",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 可以删除非 root 节点",
+          "passed": true,
+          "durationMs": 0.3649
+        },
+        {
+          "name": "任何用户都不能删除 root 节点",
+          "passed": true,
+          "durationMs": 0.1119
+        },
+        {
+          "name": "leaderA 可以删除本组的 group 节点",
+          "passed": true,
+          "durationMs": 0.1608
+        },
+        {
+          "name": "memberA1 不可以删除 B 组节点（跨组）",
+          "passed": true,
+          "durationMs": 0.1854
+        },
+        {
+          "name": "guest 不可以删除任何节点",
+          "passed": true,
+          "durationMs": 0.1633
+        },
+        {
+          "name": "缺少 viewNodeId 返回失败",
+          "passed": true,
+          "durationMs": 0.11
+        },
+        {
+          "name": "删除不存在的节点返回失败",
+          "passed": true,
+          "durationMs": 0.1
+        }
+      ],
+      "passed": 7,
+      "failed": 0,
+      "durationMs": 1.406
+    },
+    {
+      "name": "mapAndValidateOperation — 边界与错误处理",
+      "file": "",
+      "tests": [
+        {
+          "name": "未知操作类型返回失败",
+          "passed": true,
+          "durationMs": 0.1222
+        },
+        {
+          "name": "viewNodeId 不在映射表中时，mapViewToReal 回退到原 viewNodeId",
+          "passed": true,
+          "durationMs": 0.17
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "durationMs": 0.3947
+    },
+    {
+      "name": "logOperation — 记录操作日志",
+      "file": "",
+      "tests": [
+        {
+          "name": "成功记录一条日志",
+          "passed": true,
+          "durationMs": 1.0313
+        },
+        {
+          "name": "不传 ipAddress 也能记录",
+          "passed": true,
+          "durationMs": 0.4503
+        },
+        {
+          "name": "不传 detail 也能记录",
+          "passed": true,
+          "durationMs": 0.4164
+        },
+        {
+          "name": "记录后可在数据库中查到",
+          "passed": true,
+          "durationMs": 0.5719
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "durationMs": 3.4306
+    },
+    {
+      "name": "getOperationLogs — 分页查询日志",
+      "file": "",
+      "tests": [
+        {
+          "name": "默认分页查询（page=1, pageSize=50）返回日志列表",
+          "passed": true,
+          "durationMs": 0.4168
+        },
+        {
+          "name": "按 userId 筛选",
+          "passed": true,
+          "durationMs": 0.2159
+        },
+        {
+          "name": "分页参数 pageSize 生效",
+          "passed": true,
+          "durationMs": 0.1958
+        },
+        {
+          "name": "分页参数 page 生效（第二页数据不同于第一页）",
+          "passed": true,
+          "durationMs": 0.4026
+        },
+        {
+          "name": "不存在的 userId 返回空日志",
+          "passed": true,
+          "durationMs": 0.2431
+        },
+        {
+          "name": "日志按 id 降序排列（最新在前）",
+          "passed": true,
+          "durationMs": 0.2362
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "durationMs": 2.8629
+    },
+    {
+      "name": "隐私操作全流程 — insert",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 插入节点 → 写入 MasterDoc → 视图更新可见",
+          "passed": true,
+          "durationMs": 7.3499
+        },
+        {
+          "name": "leaderA 插入节点到 A组任务下 → 写入成功",
+          "passed": true,
+          "durationMs": 1.101
+        },
+        {
+          "name": "memberA1 插入节点到 A组任务下 → 写入成功 → 本组可见",
+          "passed": true,
+          "durationMs": 1.0803
+        },
+        {
+          "name": "memberA1 试图在 B组任务下插入 → 被拒绝（跨组）",
+          "passed": true,
+          "durationMs": 0.5726
+        },
+        {
+          "name": "guest 试图插入节点 → 被拒绝（无编辑权）",
+          "passed": true,
+          "durationMs": 0.6414
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "durationMs": 11.505
+    },
+    {
+      "name": "隐私操作全流程 — update",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 更新节点 → MasterDoc 内容改变 → 视图反映更新",
+          "passed": true,
+          "durationMs": 1.1464
+        },
+        {
+          "name": "leaderA 可以更新本组的 group 节点",
+          "passed": true,
+          "durationMs": 0.7494
+        },
+        {
+          "name": "memberA1 更新 B组节点 → 被拒绝（跨组 + 视图不可见）",
+          "passed": true,
+          "durationMs": 0.6334
+        },
+        {
+          "name": "guest 尝试更新公开节点 → 被拒绝",
+          "passed": true,
+          "durationMs": 0.8785
+        },
+        {
+          "name": "更新不存在的节点 ID → 返回失败",
+          "passed": true,
+          "durationMs": 0.5225
+        },
+        {
+          "name": "更新已删除节点 → 被拒绝",
+          "passed": true,
+          "durationMs": 0.5394
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "durationMs": 4.9913
+    },
+    {
+      "name": "隐私操作全流程 — delete",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 删除节点 → 逻辑删除 → 视图仍可见（内容标注删除）",
+          "passed": true,
+          "durationMs": 0.7469
+        },
+        {
+          "name": "非 admin 删除节点后视图中消失",
+          "passed": true,
+          "durationMs": 0.4353
+        },
+        {
+          "name": "删除 root → 被拒绝",
+          "passed": true,
+          "durationMs": 0.3987
+        },
+        {
+          "name": "memberB1 删除 A组节点 → 被拒绝（跨组 + 不可见）",
+          "passed": true,
+          "durationMs": 0.4593
+        },
+        {
+          "name": "guest 尝试删除公开节点 → 被拒绝",
+          "passed": true,
+          "durationMs": 0.4876
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "durationMs": 2.742
+    },
+    {
+      "name": "隐私操作全流程 — 多用户视图同步",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 在 A组任务下插入子节点 → A组成员可见 → B组成员不可见",
+          "passed": true,
+          "durationMs": 0.6113
+        },
+        {
+          "name": "操作后 mapping 表更新正确",
+          "passed": true,
+          "durationMs": 0.4064
+        },
+        {
+          "name": "节点被过滤后（非 admin 删除）mapping 条目减少",
+          "passed": true,
+          "durationMs": 0.4365
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "durationMs": 1.6052
+    },
+    {
+      "name": "隐私操作全流程 — 边界情况",
+      "file": "",
+      "tests": [
+        {
+          "name": "canEdit → canAccess 不变式：能编辑则必能访问",
+          "passed": true,
+          "durationMs": 1.3613
+        },
+        {
+          "name": "guest 在常规文档中至少能看到 root + 公开节点",
+          "passed": true,
+          "durationMs": 1.7154
+        },
+        {
+          "name": "insert 操作的 allowedRoles 默认值 = getDefaultAllowedRoles(role)",
+          "passed": true,
+          "durationMs": 1.2581
+        },
+        {
+          "name": "insert 操作 payload 的默认值填充正确",
+          "passed": true,
+          "durationMs": 0.4126
+        },
+        {
+          "name": "delete 操作级联：删除父节点 → 子节点也标记为 deleted",
+          "passed": true,
+          "durationMs": 0.4259
+        },
+        {
+          "name": "叶子节点（无子节点）的更新和删除操作正常",
+          "passed": true,
+          "durationMs": 0.5348
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "durationMs": 5.9144
+    },
+    {
+      "name": "隐私操作全流程 — 映射表独立性",
+      "file": "",
+      "tests": [
+        {
+          "name": "mapViewToReal: viewNodeId 在映射表中时返回 realNodeId",
+          "passed": true,
+          "durationMs": 0.4154
+        },
+        {
+          "name": "viewNodeId 不在映射表中时 mapViewToReal 回退到原 viewNodeId",
+          "passed": true,
+          "durationMs": 0.3938
+        },
+        {
+          "name": "viewNodeId 不在映射表中且不等于任何 realNodeId → 返回失败",
+          "passed": true,
+          "durationMs": 0.3631
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "durationMs": 1.288
+    },
+    {
+      "name": "roleStore — 查询操作",
+      "file": "",
+      "tests": [
+        {
+          "name": "getRoleConfig: 获取 admin 角色配置",
+          "passed": true,
+          "durationMs": 1.9439
+        },
+        {
+          "name": "getRoleConfig: 获取 leader 角色配置",
+          "passed": true,
+          "durationMs": 0.3649
+        },
+        {
+          "name": "getRoleConfig: 获取 guest 角色配置",
+          "passed": true,
+          "durationMs": 0.3441
+        },
+        {
+          "name": "getRoleConfig: 不存在的角色返回 undefined",
+          "passed": true,
+          "durationMs": 0.4163
+        },
+        {
+          "name": "getAllRoleConfigs: 返回 4 个默认角色，按 priority 降序排列",
+          "passed": true,
+          "durationMs": 0.5151
+        },
+        {
+          "name": "roleExists: 存在的角色返回 true",
+          "passed": true,
+          "durationMs": 0.3399
+        },
+        {
+          "name": "roleExists: 不存在的角色返回 false",
+          "passed": true,
+          "durationMs": 0.221
+        }
+      ],
+      "passed": 7,
+      "failed": 0,
+      "durationMs": 5.0461
+    },
+    {
+      "name": "roleStore — toRoleConfig 类型转换",
+      "file": "",
+      "tests": [
+        {
+          "name": "INTEGER 0/1 正确转换为 boolean",
+          "passed": true,
+          "durationMs": 0.3218
+        },
+        {
+          "name": "JSON 字符串正确解析为数组",
+          "passed": true,
+          "durationMs": 0.2943
+        },
+        {
+          "name": "member 角色 canEditOwnGroup = true",
+          "passed": true,
+          "durationMs": 0.2781
+        },
+        {
+          "name": "guest 角色 canEditOwnGroup = false（无编辑权限）",
+          "passed": true,
+          "durationMs": 0.24
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "durationMs": 1.4274
+    },
+    {
+      "name": "roleStore — 创建角色",
+      "file": "",
+      "tests": [
+        {
+          "name": "createRole: 成功创建新角色",
+          "passed": true,
+          "durationMs": 11.8251
+        },
+        {
+          "name": "createRole: 创建后可查询配置",
+          "passed": true,
+          "durationMs": 0.4756
+        },
+        {
+          "name": "createRole: [注意] 重复创建抛异常而非返回 false（server.ts 期望返回 false，此处行为不一致）",
+          "passed": true,
+          "durationMs": 0.7204
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "durationMs": 13.1449
+    },
+    {
+      "name": "roleStore — 更新角色",
+      "file": "",
+      "tests": [
+        {
+          "name": "updateRole: 更新 priority",
+          "passed": true,
+          "durationMs": 0.6002
+        },
+        {
+          "name": "updateRole: 更新 canEditAll",
+          "passed": true,
+          "durationMs": 0.3822
+        },
+        {
+          "name": "updateRole: 更新 allowedVisibilities",
+          "passed": true,
+          "durationMs": 0.5014
+        },
+        {
+          "name": "updateRole: 不存在的角色返回 false",
+          "passed": true,
+          "durationMs": 0.2261
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "durationMs": 1.8493
+    },
+    {
+      "name": "roleStore — 删除角色",
+      "file": "",
+      "tests": [
+        {
+          "name": "deleteRole: 成功删除自定义角色",
+          "passed": true,
+          "durationMs": 0.4296
+        },
+        {
+          "name": "deleteRole: 删除不存在的角色返回 false",
+          "passed": true,
+          "durationMs": 0.1884
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "durationMs": 0.7096
+    },
+    {
+      "name": "userStore — 查询操作",
+      "file": "",
+      "tests": [
+        {
+          "name": "findUserByUserId: 找到存在的用户",
+          "passed": true,
+          "durationMs": 1.0816
+        },
+        {
+          "name": "findUserByUserId: 不存在的用户返回 undefined",
+          "passed": true,
+          "durationMs": 0.4439
+        },
+        {
+          "name": "findUserByUsername: 找到存在的用户（用于登录）",
+          "passed": true,
+          "durationMs": 0.4278
+        },
+        {
+          "name": "findUserByUsername: 不存在的用户名返回 undefined",
+          "passed": true,
+          "durationMs": 0.5798
+        },
+        {
+          "name": "getAllUsers: 返回所有用户的公开信息",
+          "passed": true,
+          "durationMs": 0.5138
+        },
+        {
+          "name": "getUserCount: 返回正确的用户总数",
+          "passed": true,
+          "durationMs": 0.3005
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "durationMs": 4.1361
+    },
+    {
+      "name": "userStore — 创建用户",
+      "file": "",
+      "tests": [
+        {
+          "name": "createUser: 成功创建新用户并返回完整记录",
+          "passed": true,
+          "durationMs": 0.6742
+        },
+        {
+          "name": "createUser: 创建后可通过 findUserByUserId 查找到",
+          "passed": true,
+          "durationMs": 0.6228
+        },
+        {
+          "name": "createUser: 重复 userId 抛出异常",
+          "passed": true,
+          "durationMs": 0.797
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "durationMs": 2.4238
+    },
+    {
+      "name": "userStore — 更新用户",
+      "file": "",
+      "tests": [
+        {
+          "name": "updateUser: 更新 name 字段",
+          "passed": true,
+          "durationMs": 0.7479
+        },
+        {
+          "name": "updateUser: 更新 role 字段",
+          "passed": true,
+          "durationMs": 0.5268
+        },
+        {
+          "name": "updateUser: 更新 groupName 字段",
+          "passed": true,
+          "durationMs": 0.5538
+        },
+        {
+          "name": "updateUser: 同时更新多个字段",
+          "passed": true,
+          "durationMs": 0.5876
+        },
+        {
+          "name": "updateUser: 不存在的用户返回 false",
+          "passed": true,
+          "durationMs": 0.2908
+        },
+        {
+          "name": "updateUser: 空更新字段返回 false",
+          "passed": true,
+          "durationMs": 0.4461
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "durationMs": 3.3554
+    },
+    {
+      "name": "userStore — 删除用户",
+      "file": "",
+      "tests": [
+        {
+          "name": "deleteUser: 成功删除存在的用户",
+          "passed": true,
+          "durationMs": 0.6705
+        },
+        {
+          "name": "deleteUser: 删除不存在的用户返回 false",
+          "passed": true,
+          "durationMs": 0.286
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "durationMs": 1.0565
+    },
+    {
+      "name": "buildViewTree — 视图树构建",
+      "file": "",
+      "tests": [
+        {
+          "name": "admin 可以看到全部 5 个节点",
+          "passed": true,
+          "durationMs": 1.1851
+        },
+        {
+          "name": "leaderA 可以看到 3 个节点（root + 公开介绍 + A组任务）",
+          "passed": true,
+          "durationMs": 0.2417
+        },
+        {
+          "name": "memberA1 可以看到 3 个节点（root + 公开介绍 + A组任务）",
+          "passed": true,
+          "durationMs": 0.1331
+        },
+        {
+          "name": "memberB1 可以看到 3 个节点（root + 公开介绍 + B组任务）",
+          "passed": true,
+          "durationMs": 0.1469
+        },
+        {
+          "name": "guest01 只能看到 2 个节点（root + 公开介绍）",
+          "passed": true,
+          "durationMs": 0.1478
+        },
+        {
+          "name": "已删除节点在视图内容中显示 '(该节点已被删除)'",
+          "passed": true,
+          "durationMs": 0.1823
+        },
+        {
+          "name": "已删除节点对非 admin 不可见",
+          "passed": true,
+          "durationMs": 0.1582
+        },
+        {
+          "name": "ViewNode 的 viewNodeId 与 realNodeId 一致",
+          "passed": true,
+          "durationMs": 0.2551
+        }
+      ],
+      "passed": 8,
+      "failed": 0,
+      "durationMs": 3.6373
+    },
+    {
+      "name": "buildUserView — 完整用户视图（含元数据）",
+      "file": "",
+      "tests": [
+        {
+          "name": "返回正确的 userId / userName / role / group",
+          "passed": true,
+          "durationMs": 0.28
+        },
+        {
+          "name": "统计信息正确：totalNodeCount 为 5",
+          "passed": true,
+          "durationMs": 0.27
+        },
+        {
+          "name": "统计信息正确：admin 的 filteredCount = 0, visibleNodeCount = 5",
+          "passed": true,
+          "durationMs": 0.1277
+        },
+        {
+          "name": "统计信息正确：leaderA 的 filteredCount = 2, visibleNodeCount = 3",
+          "passed": true,
+          "durationMs": 0.1108
+        },
+        {
+          "name": "统计信息正确：guest 的 filteredCount = 3, visibleNodeCount = 2",
+          "passed": true,
+          "durationMs": 0.1329
+        },
+        {
+          "name": "mapping 表为每个可见节点记录 viewNodeId → realNodeId",
+          "passed": true,
+          "durationMs": 0.1188
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "durationMs": 1.2804
+    },
+    {
+      "name": "findViewNode — 在视图树中按 viewNodeId 查找节点",
+      "file": "",
+      "tests": [
+        {
+          "name": "查找到存在的节点",
+          "passed": true,
+          "durationMs": 0.1995
+        },
+        {
+          "name": "查找到 root 节点",
+          "passed": true,
+          "durationMs": 0.1772
+        },
+        {
+          "name": "查找不存在的节点返回 null",
+          "passed": true,
+          "durationMs": 0.0974
+        },
+        {
+          "name": "在深层嵌套中也能查到（递归搜索）",
+          "passed": true,
+          "durationMs": 0.0962
+        },
+        {
+          "name": "空视图树（tree 为 null）返回 null",
+          "passed": true,
+          "durationMs": 0.0879
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "durationMs": 0.7985
+    }
+  ]
+}

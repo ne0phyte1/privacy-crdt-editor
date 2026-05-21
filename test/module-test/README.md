@@ -66,6 +66,35 @@ npx tsx --test --test-reporter spec test/module-test/viewBuilder.test.ts
 
 ---
 
+## 可视化测试面板
+
+提供了一个浏览器端测试结果可视化面板：
+
+### 使用方式
+
+**1. 生成测试报告：**
+```bash
+npx tsx test/module-test/run-tests.ts
+```
+
+**2. 启动本地服务器查看面板：**
+```bash
+npx serve test/module-test
+```
+浏览器打开 `http://localhost:3000/test-dashboard.html`
+
+或者直接双击 `test-dashboard.html` 在浏览器中打开（部分浏览器可能拦截 file:// 的 fetch 请求，建议用 serve）。
+
+### 面板功能
+
+- 摘要卡片：用例总数、通过/失败数、总耗时
+- 状态横幅：一目了然的全部通过/有失败
+- 展开/收起：点击套件行展开查看每条测试详情
+- 搜索过滤：按关键词搜索测试用例
+- 失败高亮：失败套件默认展开，红色标记
+
+---
+
 ## 测试中发现的问题
 
 以下问题在测试编写过程中暴露，需要开发人员确认和处理：

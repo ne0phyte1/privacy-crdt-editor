@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块单元测试 — 可视化面板</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+  /* 头部 */
+  .header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid #21262d; margin-bottom: 24px; }
+  .header h1 { font-size: 24px; color: #58a6ff; margin-bottom: 6px; }
+  .header p { color: #8b949e; font-size: 14px; }
+
+  /* 摘要卡片 */
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 16px; text-align: center; }
+  .card .value { font-size: 28px; font-weight: 700; }
+  .card .label { font-size: 12px; color: #8b949e; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card.pass .value { color: #3fb950; }
+  .card.fail .value { color: #f85149; }
+  .card.total .value { color: #58a6ff; }
+  .card.time .value { font-size: 20px; color: #d2a8ff; }
+
+  /* 状态横幅 */
+  .banner { padding: 12px 20px; border-radius: 8px; margin-bottom: 24px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .banner.all-pass { background: #0d3320; border: 1px solid #1a5432; color: #3fb950; }
+  .banner.has-fail { background: #3d1116; border: 1px solid #6e2329; color: #f85149; }
+  .banner.no-data { background: #1b1f24; border: 1px solid #373e47; color: #8b949e; }
+
+  /* 工具栏 */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .toolbar button { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.15s; }
+  .toolbar button:hover { background: #30363d; }
+  .toolbar button.primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+  .toolbar button.primary:hover { background: #388bfd; }
+  .toolbar .search { background: #0d1117; border: 1px solid #30363d; padding: 8px 12px; border-radius: 6px; color: #c9d1d9; font-size: 13px; width: 220px; }
+  .toolbar .search::placeholder { color: #484f58; }
+
+  /* 套件列表 */
+  .suite-group { margin-bottom: 20px; }
+  .suite-group-title { font-size: 13px; font-weight: 600; color: #8b949e; padding: 8px 0; border-bottom: 1px solid #21262d; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .suite { background: #161b22; border: 1px solid #21262d; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+  .suite-header { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; user-select: none; gap: 10px; transition: background 0.15s; }
+  .suite-header:hover { background: #1c2129; }
+  .suite-header .icon { font-size: 14px; width: 18px; flex-shrink: 0; }
+  .suite-header .name { flex: 1; font-size: 14px; font-weight: 500; }
+  .suite-header .stats { font-size: 12px; color: #8b949e; white-space: nowrap; }
+  .suite-header .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .badge.pass { background: #0d3320; color: #3fb950; }
+  .badge.fail { background: #3d1116; color: #f85149; }
+
+  .suite-body { display: none; border-top: 1px solid #21262d; }
+  .suite.open .suite-body { display: block; }
+
+  .test-row { display: flex; align-items: center; padding: 7px 16px 7px 44px; gap: 8px; font-size: 13px; border-bottom: 1px solid #21262d1a; }
+  .test-row:last-child { border-bottom: none; }
+  .test-row .status { font-size: 12px; width: 16px; flex-shrink: 0; }
+  .test-row .status.pass { color: #3fb950; }
+  .test-row .status.fail { color: #f85149; }
+  .test-row .tname { flex: 1; }
+  .test-row .tdur { font-size: 11px; color: #484f58; white-space: nowrap; }
+  .test-row .error-msg { color: #f85149; font-size: 11px; margin-top: 2px; word-break: break-all; }
+
+  .suite-error { font-size: 12px; color: #f85149; padding: 8px 44px 12px; font-family: monospace; white-space: pre-wrap; }
+
+  /* 加载 / 空状态 */
+  .loading { text-align: center; padding: 60px; color: #8b949e; }
+  .loading .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid #21262d; border-top-color: #58a6ff; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty { text-align: center; padding: 60px; color: #8b949e; }
+  .empty pre { background: #161b22; border: 1px solid #21262d; border-radius: 6px; padding: 16px; margin-top: 16px; display: inline-block; text-align: left; font-size: 13px; color: #c9d1d9; }
+
+  .footer { text-align: center; padding: 32px 0; font-size: 12px; color: #484f58; border-top: 1px solid #21262d; margin-top: 32px; }
+
+  /* 移动端 */
+  @media (max-width: 640px) {
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .suite-header .stats { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>模块单元测试</h1>
+    <p>Step 4（SQLite 迁移 + 正向视图变换）&nbsp;·&nbsp; Step 5（逆向映射）</p>
+  </div>
+
+  <div id="summaryArea"></div>
+  <div id="bannerArea"></div>
+
+  <div class="toolbar">
+    <button class="primary" onclick="location.reload()">刷新报告</button>
+    <button onclick="expandAll()">展开全部</button>
+    <button onclick="collapseAll()">收起全部</button>
+    <input class="search" id="searchInput" placeholder="搜索测试用例..." oninput="filterTests()">
+    <span style="font-size:12px;color:#484f58;margin-left:auto;">报告: <span id="reportTime">—</span></span>
+  </div>
+
+  <div id="suitesArea"></div>
+
+  <div class="footer">
+    测试文件位于 <code>test/module-test/</code> &nbsp;|&nbsp;
+    生成报告: <code>npx tsx test/module-test/run-tests.ts</code>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 加载与渲染
+// ============================================================
+
+const SUITE_GROUPS = [
+  { key: "database", label: "数据库与表结构" },
+  { key: "userStore", label: "用户 CRUD (userStore)" },
+  { key: "roleStore", label: "角色 CRUD (roleStore)" },
+  { key: "authService", label: "认证服务 (authService)" },
+  { key: "operationLog", label: "操作日志 (operationLogStore)" },
+  { key: "accessControl", label: "权限校验 (accessControl)" },
+  { key: "viewBuilder", label: "正向视图变换 (viewBuilder)" },
+  { key: "inverseMapper", label: "逆向映射 (inverseMapper)" },
+  { key: "privacy", label: "隐私流程" },
+  { key: "auth-edge", label: "边界测试" },
+];
+
+async function main() {
+  let report;
+  try {
+    const resp = await fetch("test-results.json");
+    if (!resp.ok) throw new Error("JSON not found");
+    report = await resp.json();
+  } catch {
+    showNoData();
+    return;
+  }
+  renderSummary(report.summary);
+  renderBanner(report.summary);
+  renderSuites(report);
+  document.getElementById("reportTime").textContent = new Date(report.generatedAt).toLocaleString("zh-CN");
+}
+
+function showNoData() {
+  let h = "";
+  h += `<div class="summary"><div class="card total"><div class="value">—</div><div class="label">用例数</div></div></div>`;
+  h += `<div class="banner no-data">未找到测试报告 (test-results.json)</div>`;
+  h += `<div class="empty"><p>请先运行测试生成报告：</p>`;
+  h += `<pre>cd ${location.pathname.split('/test/')[0] || '项目根目录'}
+npx tsx test/module-test/run-tests.ts</pre>`;
+  h += `<p style="margin-top:12px">或从 CLI 直接运行:</p>`;
+  h += `<pre>npx tsx --test --test-reporter spec --test-concurrency=1 test/module-test/*.test.ts</pre></div>`;
+  document.getElementById("summaryArea").innerHTML = h;
+}
+
+// -------- 摘要卡片 --------
+function renderSummary(s) {
+  document.getElementById("summaryArea").innerHTML = `
+    <div class="summary">
+      <div class="card total"><div class="value">${s.tests}</div><div class="label">用例总数</div></div>
+      <div class="card pass"><div class="value">${s.passed}</div><div class="label">通过</div></div>
+      <div class="card fail"><div class="value">${s.failed}</div><div class="label">失败</div></div>
+      <div class="card time"><div class="value">${(s.durationMs / 1000).toFixed(1)}s</div><div class="label">总耗时</div></div>
+      <div class="card total"><div class="value">${s.files}</div><div class="label">文件</div></div>
+      <div class="card total"><div class="value">${s.suites}</div><div class="label">套件</div></div>
+    </div>`;
+}
+
+// -------- 状态横幅 --------
+function renderBanner(s) {
+  const cls = s.failed === 0 ? "all-pass" : "has-fail";
+  const msg = s.failed === 0
+    ? `全部 ${s.tests} 条测试通过`
+    : `${s.failed} / ${s.tests} 条测试失败`;
+  const icon = s.failed === 0 ? "&#x2705;" : "&#x274C;";
+  document.getElementById("bannerArea").innerHTML = `<div class="banner ${cls}">${icon} ${msg}</div>`;
+}
+
+// -------- 套件列表 --------
+function renderSuites(report) {
+  const container = document.getElementById("suitesArea");
+  let html = "";
+
+  // 按文件分组
+  const byFile = {};
+  for (const s of report.suites) {
+    const file = s.file || "other";
+    if (!byFile[file]) byFile[file] = [];
+    byFile[file].push(s);
+  }
+
+  for (const [file, suites] of Object.entries(byFile)) {
+    const groupLabel = getFileLabel(file);
+    html += `<div class="suite-group"><div class="suite-group-title">${groupLabel}</div>`;
+    for (const suite of suites) {
+      const allPass = suite.failed === 0 && !suite.error;
+      const icon = allPass ? '<span class="icon pass">&#x2705;</span>' : '<span class="icon fail">&#x274C;</span>';
+      const badge = allPass
+        ? `<span class="badge pass">${suite.passed}/${suite.passed + suite.failed} 通过</span>`
+        : `<span class="badge fail">${suite.failed} 失败</span>`;
+
+      html += `<div class="suite${allPass ? "" : " open"}" data-pass="${allPass}">`;
+      html += `<div class="suite-header" onclick="toggleSuite(this)">`;
+      html += `${icon}<span class="name">${escHtml(suite.name)}</span>`;
+      html += `<span class="stats">${badge} &nbsp;${suite.durationMs.toFixed(0)}ms</span>`;
+      html += `</div>`;
+
+      html += `<div class="suite-body">`;
+      if (suite.error) {
+        html += `<div class="suite-error">${escHtml(suite.error)}</div>`;
+      }
+      for (const t of suite.tests) {
+        const statusIcon = t.passed ? '<span class="status pass">&#x2714;</span>' : '<span class="status fail">&#x2718;</span>';
+        html += `<div class="test-row" data-name="${escHtml(t.name.toLowerCase())}">`;
+        html += `${statusIcon}<span class="tname">${escHtml(t.name)}</span>`;
+        html += `<span class="tdur">${t.durationMs.toFixed(1)}ms</span>`;
+        html += `</div>`;
+        if (t.error) {
+          html += `<div class="test-row"><span class="error-msg">${escHtml(t.error)}</span></div>`;
+        }
+      }
+      html += `</div></div>`;
+    }
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function getFileLabel(filename) {
+  const map = {
+    "database.test.ts": "database.test.ts — 数据库初始化与表结构",
+    "userStore.test.ts": "userStore.test.ts — 用户数据访问层",
+    "roleStore.test.ts": "roleStore.test.ts — 角色数据访问层",
+    "authService.test.ts": "authService.test.ts — 认证服务",
+    "operationLogStore.test.ts": "operationLogStore.test.ts — 操作日志",
+    "accessControl.test.ts": "accessControl.test.ts — RBAC / ABAC 纯函数",
+    "accessControl-db.test.ts": "accessControl-db.test.ts — 编辑权限 (canEditNode)",
+    "viewBuilder.test.ts": "viewBuilder.test.ts — 正向视图变换",
+    "inverseMapper.test.ts": "inverseMapper.test.ts — 逆向映射",
+    "privacy-flow.test.ts": "privacy-flow.test.ts — 隐私全流程",
+    "auth-edge.test.ts": "auth-edge.test.ts — 认证边界测试",
+  };
+  return map[filename] || filename;
+}
+
+// -------- 交互 --------
+function toggleSuite(header) {
+  header.parentElement.classList.toggle("open");
+}
+
+function expandAll() {
+  document.querySelectorAll(".suite").forEach((s) => s.classList.add("open"));
+}
+function collapseAll() {
+  document.querySelectorAll(".suite").forEach((s) => s.classList.remove("open"));
+}
+
+function filterTests() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  document.querySelectorAll(".suite").forEach((suite) => {
+    if (!q) { suite.style.display = ""; return; }
+    const rows = suite.querySelectorAll(".test-row");
+    let anyMatch = false;
+    rows.forEach((r) => {
+      const name = r.getAttribute("data-name") || "";
+      if (name.includes(q)) { r.style.display = ""; anyMatch = true; }
+      else { r.style.display = "none"; }
+    });
+    suite.style.display = anyMatch ? "" : "none";
+    if (anyMatch) suite.classList.add("open");
+  });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+main();
+</script>
+</body>
+</html>
