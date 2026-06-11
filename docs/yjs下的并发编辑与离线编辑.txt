@@ -1,0 +1,43 @@
+全部通过。总结实现内容：
+
+Yjs 同步协议栈实现 — 支持离线编辑 + 并发协同
+
+架构变化
+
+之前:  前端 ──REST──→ 后端单例 Y.Doc（串行，无协同）
+
+之后:  前端 A ──WebSocket──┐
+       前端 B ──WebSocket──┤──→ 后端 Y.Doc 房间（按文档隔离）
+                            ├──→ y-protocols 同步协议
+                            └──→ 隐私过滤（每用户只看可见文档）
+后端新增文件
+
+backend/src/crdt/ySyncServer.ts — Yjs 同步服务器
+按 nodeId 管理独立的 Y.Doc 房间
+实现 y-protocols 标准同步协议（sync step 1/2 + update）
+实现 Awareness 协议（在线状态感知）
+隐私过滤：canAccessNode 检查后才允许加入房间
+更新广播：仅发送给同房间且在线的客户端
+后端修改
+
+backend/src/server.ts — 同端口挂载 WebSocket（路径 /ws，token 认证）
+新增依赖：ws、y-protocols、lib0
+前端新增文件
+
+frontend/src/hooks/useYjsCollab.ts — Yjs 协作 hook
+WebSocket 连接管理 + 自动重连
+join/leave 房间协议
+双向同步：本地编辑 → 编码为 Yjs update → WebSocket 发送
+接收远程更新 → Y.applyUpdate → 自动反映到 TipTap
+前端修改
+
+frontend/src/DocumentPage.tsx
+TipTap 接入 @tiptap/extension-collaboration 扩展
+文档打开时自动 join Yjs 房间
+顶部协作状态指示器（绿点=已连接 / 黄点=连接中）
+新增依赖：yjs、y-protocols、lib0、@tiptap/extension-collaboration、@tiptap/y-tiptap、@tiptap/pm@3.23.6
+离线编辑能力：断网时 Yjs 本地继续接受编辑，恢复连接后 y-protocols 自动同步所有本地堆积的更新。
+
+并发编辑能力：多人打开同一文档，各自的编辑通过 Yjs CRDT 自动合并，无冲突无锁。
+
+启动方式：后端 npx tsx src/server.ts，前端 npm run dev，打开两个浏览器窗口用不同账号登录同一文档即可验证并发编辑。
